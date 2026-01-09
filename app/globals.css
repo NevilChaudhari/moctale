@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* NProgress top bar */
+#nprogress .bar {
+  background: linear-gradient(90deg, rgba(176, 72, 255, 1) 0%, rgba(143, 68, 240, 1) 100%) !important;
+  height: 2px !important;
+  z-index: 9999 !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #b048ff, 0 0 5px #8f44f0 !important;
+}
+
+#nprogress .spinner {
+  display: none !important;
+}
