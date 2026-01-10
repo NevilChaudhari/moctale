@@ -13,10 +13,10 @@ export default function TopProgressBar() {
     NProgress.configure({ showSpinner: false, trickleSpeed: 100 });
 
     // Skip the first render
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    // if (firstRender.current) {
+    //   firstRender.current = false;
+    //   return;
+    // }
 
     NProgress.start();
 
