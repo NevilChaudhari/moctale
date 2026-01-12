@@ -1,31 +1,33 @@
-import './globals.css'
+import "./globals.css";
 
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-import TopProgressBar from './TopProgressBar';
+import TopProgressBar from "./TopProgressBar";
 
-import { Inter } from 'next/font/google'
+import { Inter } from "next/font/google";
 
 const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-})
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+});
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <link
+      <head>
+        <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         />
+      </head>
       <body className={inter.className}>
         <TopProgressBar />
         {children}
       </body>
     </html>
-  )
+  );
 }
