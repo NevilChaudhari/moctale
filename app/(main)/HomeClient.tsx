@@ -5,6 +5,7 @@ import SearchBox from "@/Components/searchBox";
 import Notification from "@/Components/notification";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Explore from "./explore/page";
 
 export default function HomeClient({ userId }: { userId: string }) {
   const [opened, setOpened] = useState("Explorer");
@@ -15,23 +16,14 @@ export default function HomeClient({ userId }: { userId: string }) {
   const router = useRouter();
 
   const Profile = async () => {
-    // const res = await fetch("/api/profile/", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(userId),
-    // });
-
-    // const data = await res.json();
-    // const username = data.success;
-    // console.log(username);
     router.push(`/user/${userId}/`);
   };
 
   return (
     <>
-      <div className="min-h-screen overflow-hidden bg-black relative">
+      <div className="overflow-hidden bg-black relative">
         {/* Navbar */}
-        <div className="px-30 w-full h-15 bg-black items-center flex place-content-between border-white/20 border-b">
+        {/* <div className="px-30 w-full h-15 bg-black items-center flex place-content-between border-white/20 border-b">
           <img src="./moctale.png" alt="" className="h-auto w-40" />
           <div className="right-0 gap-8 flex items-center h-full overflow-hidden">
             <div onClick={() => setOpened("Explorer")}>
@@ -110,15 +102,16 @@ export default function HomeClient({ userId }: { userId: string }) {
               )}
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {search && <SearchBox />}
+        {/* {search && <SearchBox />}
         {browse && <BrowseBy />}
-        {notification && <Notification />}
+        {notification && <Notification />} */}
 
         {/* Content */}
         <div className="px-30 w-full h-full bg-gray-950 text-white">
           {/* Main Content */}
+          <Explore />
         </div>
       </div>
 

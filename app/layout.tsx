@@ -1,9 +1,7 @@
 import "./globals.css";
 
 import "bootstrap-icons/font/bootstrap-icons.css";
-
-import TopProgressBar from "./TopProgressBar";
-
+import TopProgressBar from "./(main)/TopProgressBar";
 import { Inter } from "next/font/google";
 
 const inter = Inter({
@@ -11,7 +9,7 @@ const inter = Inter({
   weight: ["400", "600", "700"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;

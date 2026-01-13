@@ -23,7 +23,7 @@ export default function SearchBox() {
   };
 
   return (
-    <div className="absolute text-white px-30 bg-black w-full border-white/20 border-b">
+    <div className="absolute text-white px-30 bg-black w-full border-white/20 border-b z-20">
       {/* <div className="border border-white/20 rounded-md my-4 px-2 flex bg-[#171717]"> */}
         <form
           onSubmit={(e) => {

@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   console.log(body);
 
   const [rows]: any = await db.execute(
-    "SELECT username, phone, password_hash, user_id, created_at, updated_at FROM users WHERE user_id = ? LIMIT 1",
+    "SELECT username, first_name, last_name, phone, password_hash, user_id, created_at, updated_at FROM users WHERE user_id = ? LIMIT 1",
     [user_id]
   );
 

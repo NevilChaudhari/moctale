@@ -45,7 +45,7 @@ export default function LoginCard() {
     setError(data.error);
 
     alert("Login Successfull");
-    router.push("/home");
+    router.push("/");
   };
 
   return (

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import HomeClient from "./HomeClient";
 
 export default async function Page() {
   const userId = (await cookies()).get("userId");
@@ -8,5 +9,6 @@ export default async function Page() {
     redirect("/login");
   }
 
-  redirect("/home");
+  // return (<HomeClient userId={userId.value}/>);
+  redirect("/explore");
 }

@@ -6,7 +6,7 @@ export default function Notification() {
   const [opened, setOpened] = useState("1");
 
   return (
-    <div className="bg-black/30 backdrop-blur-sm h-auto w-100 fixed right-50 mt-3 rounded-md border-white/20 border">
+    <div className="bg-black/30 backdrop-blur-sm h-auto w-100 fixed mt-3 rounded-md border-white/20 border">
       {/* Title */}
       <div className="px-5 py-3 flex place-content-between items-center border-b border-white/20">
         <label className="font-semibold text-lg text-white">Notification</label>

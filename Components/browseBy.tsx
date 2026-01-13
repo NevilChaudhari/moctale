@@ -1,6 +1,6 @@
 export default function BrowseBy() {
   return (
-    <div className="bg-black/30 backdrop-blur-sm h-100 w-100 fixed right-50 mt-3 rounded-md border-white/20 border p-5">
+    <div className="bg-black/30 backdrop-blur-sm h-100 w-100 fixed  mt-3 rounded-md border-white/20 border p-5">
       <label className="font-semibold text-lg text-white">Browse By</label>
       <div className="grid grid-cols-3 gap-3 justify-center items-center mt-5">
         <div className="hover:border-[#353945] bg-linear-to-br from-[#171717] to-[#0A0A0C] border border-[#252833] rounded-md h-24 flex items-center justify-center text-white flex-col">

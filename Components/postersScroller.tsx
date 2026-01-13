@@ -64,7 +64,7 @@ export default function postersScroller() {
       <style jsx>{`
         @keyframes scroll-up {
           0% {
-            transform: translateY(-${random}%);
+            transform: translateY(0%);
           }
           100% {
             transform: translateY(-50%);
@@ -73,7 +73,7 @@ export default function postersScroller() {
 
         @keyframes scroll-down {
           0% {
-            transform: translateY(-${random}%);
+            transform: translateY(-50%);
           }
           100% {
             transform: translateY(0);
