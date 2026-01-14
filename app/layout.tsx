@@ -22,7 +22,7 @@ export default async function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-black text-white`}>
         <TopProgressBar />
         {children}
       </body>

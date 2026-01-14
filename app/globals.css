@@ -14,3 +14,37 @@
 #nprogress .spinner {
   display: none !important;
 }
+
+/* Thin scrollbar with custom colors, no arrows */
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 6px;           /* thin vertical scrollbar */
+  height: 6px;          /* thin horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #1b1b1b;  /* track/background */
+  border-radius: 1px;   /* rounded edges */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #555555;  /* thumb color */
+  border-radius: 3px;         /* rounded edges */
+  border: 1px solid #1b1b1b; /* optional padding around thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #777777; /* slightly lighter on hover */
+}
+
+/* Remove scrollbar buttons/arrows */
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #555555 #1b1b1b; /* thumb track */
+}
