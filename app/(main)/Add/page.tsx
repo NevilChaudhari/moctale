@@ -18,7 +18,10 @@ export default function Home() {
     description: "",
     current_status: "",
     poster_url: "",
+    trailer_url: "",
   });
+
+  const [canSubmit, setCanSubmit] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -314,13 +317,30 @@ export default function Home() {
                           poster_url: data.data.url,
                         }));
                         alert("Image uploaded successfully!");
+                        setCanSubmit(true);
                       } else {
                         alert("Image upload failed!");
+                        setCanSubmit(false);
                       }
                     };
                     reader.readAsDataURL(file);
                   }}
                   className="w-full rounded-md bg-zinc-800 border border-zinc-700 px-4 py-2 text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Tags */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-zinc-300 mb-1">
+                  Trailer URL
+                </label>
+                <input
+                  type="text"
+                  name="trailer_url"
+                  value={formData.trailer_url}
+                  onChange={handleChange}
+                  placeholder="Trailer URL"
+                  className="w-full rounded-md bg-zinc-800 border border-zinc-700 px-4 py-2 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />
               </div>
             </div>
@@ -341,8 +361,9 @@ export default function Home() {
 
           {/* Submit */}
           <button
+            disabled={!canSubmit}
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition text-lg"
+            className={`${canSubmit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:cursor-not-allowed'} w-full text-white font-semibold py-3 rounded-md transition text-lg`}
           >
             Submit
           </button>

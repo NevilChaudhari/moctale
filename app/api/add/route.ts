@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     streaming_platforms,
     current_status,
     poster_url,
+    trailer_url,
   } = body;
 
   // Replace undefined with null
@@ -36,13 +37,14 @@ export async function POST(req: Request) {
     streaming_platforms ? JSON.stringify(streaming_platforms) : null,
     current_status ?? null,
     poster_url ?? null,
+    trailer_url ?? null,
   ];
 
   try {
     await db.execute(
       `INSERT INTO media 
-       (title, type, release_date, director, cast, genre, country, languages, studios, tags, description, streaming_platform, current_status, image_url) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (title, type, release_date, director, cast, genre, country, languages, studios, tags, description, streaming_platform, current_status, image_url, trailer_url) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       safeValues
     );
 

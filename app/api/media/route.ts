@@ -5,7 +5,7 @@ import { db } from "@/config/db";
 export async function GET() {
   try {
     const [rows] = await db.execute("SELECT * FROM media");
-    console.log([rows]);
+    // console.log([rows]);
     
     return NextResponse.json(rows);
   } catch (err) {

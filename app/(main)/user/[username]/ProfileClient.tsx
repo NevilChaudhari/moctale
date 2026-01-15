@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 interface Props {
   userId: string;
@@ -12,9 +12,8 @@ interface User {
   username: string;
   first_name?: string;
   last_name?: string;
-  phone?: string;
-  created_at?: string;
-  updated_at?: string;
+  bio?: string;
+  profile_url?: string;
 }
 
 export default function LogoutButton({ userId }: Props) {
@@ -31,16 +30,16 @@ export default function LogoutButton({ userId }: Props) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch("/api/profile/", {
+        const res = await fetch("/api/getUser/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: userId }),
+          body: JSON.stringify({ userId }),
         });
 
         const data = await res.json();
 
-        setUser(data.success[0] ?? null);
-        console.log(user);
+        setUser(data.data ?? null);
+        console.log(data.data);
       } catch (err) {
         console.error("Failed to fetch profile:", err);
       }
@@ -68,7 +67,7 @@ export default function LogoutButton({ userId }: Props) {
             {/* Profile Image */}
             <div className="w-35 h-35 overflow-hidden">
               <img
-                src="/R1.jpg"
+                src={user?.profile_url || "Loading"}
                 className="w-full h-full object-cover rounded-full border-gray-50/40 border-2"
                 alt=""
               />
@@ -106,10 +105,7 @@ export default function LogoutButton({ userId }: Props) {
 
           {/* Description */}
           <div className="mt-5 mb-5">
-            <p className="text-sm text-[#C6C6C6]">
-              I am an app developer and thinking of making an app of moctale.in
-              for MOC for free
-            </p>
+            <p className="text-sm text-[#C6C6C6]">{user?.bio}</p>
           </div>
 
           {/* Followers */}
@@ -129,7 +125,12 @@ export default function LogoutButton({ userId }: Props) {
           </div>
 
           {/* Edit Profile */}
-          <button className="w-full bg-[#474747] hover:bg-[#5A5A5A] text-sm text-white py-2 rounded-md cursor-pointer">
+          <button
+            onClick={() => {
+              router.push("/accounts/edit");
+            }}
+            className="w-full bg-[#474747] hover:bg-[#5A5A5A] text-sm text-white py-2 rounded-md cursor-pointer"
+          >
             Edit Profile
           </button>
         </div>
@@ -223,127 +224,141 @@ export default function LogoutButton({ userId }: Props) {
 
           <div className="w-full flex items-center justify-between pt-5">
             {/* Categories */}
-            {!isSearching && (<div className="bg-[#1b1b1b] h-8 rounded-2xl flex items-center px-1 py-1 gap-1">
-              <button
-                onClick={() => setCategories("All")}
-                className={`${
-                  categories === "All"
-                    ? "bg-[#474747] text-white"
-                    : "text-[#C6C6C6]"
-                } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-              >
-                All
-              </button>
+            {!isSearching && (
+              <div className="bg-[#1b1b1b] h-8 rounded-2xl flex items-center px-1 py-1 gap-1">
+                <button
+                  onClick={() => setCategories("All")}
+                  className={`${
+                    categories === "All"
+                      ? "bg-[#474747] text-white"
+                      : "text-[#C6C6C6]"
+                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                >
+                  All
+                </button>
 
-              <button
-                onClick={() => setCategories("Skip")}
-                className={`${
-                  categories === "Skip"
-                    ? "bg-[#fe647e] text-black"
-                    : "text-[#C6C6C6]"
-                } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-              >
-                Skip
-              </button>
+                <button
+                  onClick={() => setCategories("Skip")}
+                  className={`${
+                    categories === "Skip"
+                      ? "bg-[#fe647e] text-black"
+                      : "text-[#C6C6C6]"
+                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                >
+                  Skip
+                </button>
 
-              <button
-                onClick={() => setCategories("Timepass")}
-                className={`${
-                  categories === "Timepass"
-                    ? "bg-[#fcb700] text-black"
-                    : "text-[#C6C6C6]"
-                } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-              >
-                Timepass
-              </button>
+                <button
+                  onClick={() => setCategories("Timepass")}
+                  className={`${
+                    categories === "Timepass"
+                      ? "bg-[#fcb700] text-black"
+                      : "text-[#C6C6C6]"
+                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                >
+                  Timepass
+                </button>
 
-              <button
-                onClick={() => setCategories("Goforit")}
-                className={`${
-                  categories === "Goforit"
-                    ? "bg-[#00d391] text-black"
-                    : "text-[#C6C6C6]"
-                } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-              >
-                Go For It
-              </button>
+                <button
+                  onClick={() => setCategories("Goforit")}
+                  className={`${
+                    categories === "Goforit"
+                      ? "bg-[#00d391] text-black"
+                      : "text-[#C6C6C6]"
+                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                >
+                  Go For It
+                </button>
 
-              <button
-                onClick={() => setCategories("Perfection")}
-                className={`${
-                  categories === "Perfection"
-                    ? "bg-[#b048ff] text-black"
-                    : "text-[#C6C6C6]"
-                } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-              >
-                Perfection
-              </button>
-            </div>)}
+                <button
+                  onClick={() => setCategories("Perfection")}
+                  className={`${
+                    categories === "Perfection"
+                      ? "bg-[#b048ff] text-black"
+                      : "text-[#C6C6C6]"
+                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                >
+                  Perfection
+                </button>
+              </div>
+            )}
 
             {/* Search Box */}
-            {isSearching && (<div className=" w-full mr-2 text-[#E2E2E2] border border-[#252833] rounded-xl bg-[#1b1b1b] flex justify-center items-center gap-3 px-2">
-              <i className="bi bi-search"></i>
-              <input type="text" className="w-full py-1 focus:outline-0" placeholder="Search Reviews..."/>
-            </div>)}
+            {isSearching && (
+              <div className=" w-full mr-2 text-[#E2E2E2] border border-[#252833] rounded-xl bg-[#1b1b1b] flex justify-center items-center gap-3 px-2">
+                <i className="bi bi-search"></i>
+                <input
+                  type="text"
+                  className="w-full py-1 focus:outline-0"
+                  placeholder="Search Reviews..."
+                />
+              </div>
+            )}
 
             {/* View Type */}
             <div className="h-8 rounded-2xl flex items-center mt-t">
-              {!isSearching && (<button
-                onClick={() => setListView(true)}
-                className={`${
-                  listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
-                } p-3 rounded-l-md cursor-pointer`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-list w-4 h-4"
+              {!isSearching && (
+                <button
+                  onClick={() => setListView(true)}
+                  className={`${
+                    listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
+                  } p-3 rounded-l-md cursor-pointer`}
                 >
-                  <path d="M3 12h.01"></path>
-                  <path d="M3 18h.01"></path>
-                  <path d="M3 6h.01"></path>
-                  <path d="M8 12h13"></path>
-                  <path d="M8 18h13"></path>
-                  <path d="M8 6h13"></path>
-                </svg>
-              </button>)}
-              {!isSearching && (<button
-                onClick={() => setListView(false)}
-                className={`${
-                  !listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
-                } p-3 rounded-r-md cursor-pointer`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-layout-grid w-4 h-4"
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-list w-4 h-4"
+                  >
+                    <path d="M3 12h.01"></path>
+                    <path d="M3 18h.01"></path>
+                    <path d="M3 6h.01"></path>
+                    <path d="M8 12h13"></path>
+                    <path d="M8 18h13"></path>
+                    <path d="M8 6h13"></path>
+                  </svg>
+                </button>
+              )}
+              {!isSearching && (
+                <button
+                  onClick={() => setListView(false)}
+                  className={`${
+                    !listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
+                  } p-3 rounded-r-md cursor-pointer`}
                 >
-                  <rect width="7" height="7" x="3" y="3" rx="1"></rect>
-                  <rect width="7" height="7" x="14" y="3" rx="1"></rect>
-                  <rect width="7" height="7" x="14" y="14" rx="1"></rect>
-                  <rect width="7" height="7" x="3" y="14" rx="1"></rect>
-                </svg>
-              </button>)}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="lucide lucide-layout-grid w-4 h-4"
+                  >
+                    <rect width="7" height="7" x="3" y="3" rx="1"></rect>
+                    <rect width="7" height="7" x="14" y="3" rx="1"></rect>
+                    <rect width="7" height="7" x="14" y="14" rx="1"></rect>
+                    <rect width="7" height="7" x="3" y="14" rx="1"></rect>
+                  </svg>
+                </button>
+              )}
               <button
-              onClick={()=> {setIsSearching(!isSearching)}}
+                onClick={() => {
+                  setIsSearching(!isSearching);
+                }}
                 className={`bg-[#1b1b1b] px-3 py-2 rounded-full cursor-pointer ml-2`}
               >
-                {!isSearching && (<i className="bi bi-search"></i>)}
-                {isSearching && (<i className="bi bi-x-lg"></i>)}
+                {!isSearching && <i className="bi bi-search"></i>}
+                {isSearching && <i className="bi bi-x-lg"></i>}
               </button>
             </div>
           </div>
@@ -355,7 +370,7 @@ export default function LogoutButton({ userId }: Props) {
             }`}
           >
             {/* Movie Card */}
-            {listView && (
+            {!listView && (
               <div className="hover:bg-[#1f1f1f] flex rounded-md w-full gap-2 p-2">
                 <img src="/C4.jpg" alt="" className="rounded-sm w-30 h-auto" />
                 <div className="flex flex-col pl-3 pt-3 w-full">
@@ -403,22 +418,27 @@ export default function LogoutButton({ userId }: Props) {
                       )}
                       <i className="bi bi-chat-left cursor-pointer"></i>
                     </div>
-                    <div onClick={()=>setShowOptions(!showOptions)} className="relative flex mt-2 place-content-between gap-4 text-xl cursor-pointer justify-center items-center hover:bg-[#363636] px-2 py-1 rounded-full">
+                    <div
+                      onClick={() => setShowOptions(!showOptions)}
+                      className="relative flex mt-2 place-content-between gap-4 text-xl cursor-pointer justify-center items-center hover:bg-[#363636] px-2 py-1 rounded-full"
+                    >
                       <i className="bi bi-three-dots"></i>
-                      {showOptions && (<div className="rounded-md py-2 text-sm mt-2 w-max absolute top-full right-0 bg-[#2A2A2A]">
-                        <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                          <i className="bi bi-share"></i>
-                          Share - Story
-                        </button>
-                        <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                          <i className="bi bi-share"></i>
-                          Share - Clasic
-                        </button>
-                        <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                          <i className="bi bi-flag"></i>
-                          Report
-                        </button>
-                      </div>)}
+                      {showOptions && (
+                        <div className="rounded-md py-2 text-sm mt-2 w-max absolute top-full right-0 bg-[#2A2A2A]">
+                          <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                            <i className="bi bi-share"></i>
+                            Share - Story
+                          </button>
+                          <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                            <i className="bi bi-share"></i>
+                            Share - Clasic
+                          </button>
+                          <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                            <i className="bi bi-flag"></i>
+                            Report
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -445,6 +465,13 @@ export default function LogoutButton({ userId }: Props) {
                 </div>
               </div>
             )}
+
+            {/* No Movie Card */}
+            <div className="h-50 w-full bg-[#1b1b1b] rounded-xl items-center justify-center flex flex-col">
+              <i className="text-3xl bi bi-pencil-square mb-5"></i>
+              <span className="text-md">You haven't posted any reviews yet</span>
+              <span className="text-sm text-[#C6C6C6]">Start sharing your opinions on movies and TV shows</span>
+            </div>
           </div>
         </div>
 

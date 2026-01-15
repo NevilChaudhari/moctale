@@ -3,7 +3,7 @@
 import BrowseBy from "@/Components/browseBy";
 import SearchBox from "@/Components/searchBox";
 import Notification from "@/Components/notification";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProfileOptions from "./profileOptions";
 
@@ -13,12 +13,31 @@ export default function NavBar({ userId }: { userId?: string | null }) {
   const [browse, setBrowse] = useState(false);
   const [profile, setProfile] = useState(false);
   const [notification, setNotification] = useState(false);
+  const [profile_url, setProfile_url] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
 
-  const Profile = () => {
-    setOpened("Profile");
-    // router.push(`/user/${userId}/`);
-  };
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`/api/getUser`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Failed to fetch user");
+        
+        setProfile_url(data.data.profile_url || "");
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    };
+
+    if (userId) fetchUser();
+  }, [userId]);
 
   const Explorer = () => {
     setOpened("Explorer");
@@ -133,7 +152,7 @@ export default function NavBar({ userId }: { userId?: string | null }) {
                 onClick={() => setProfile(!profile)}
               >
                 <img
-                  src="/R1.jpg"
+                  src={profile_url}
                   className="w-full h-full object-cover rounded-full border-gray-50/40 border-2"
                   alt=""
                 />

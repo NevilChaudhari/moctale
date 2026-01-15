@@ -18,6 +18,7 @@ export default function ContentClient({ id }: Props) {
   const [actors, setActors] = useState<any>(null);
   const [crew, setCrew] = useState<any>(null);
   const [studios, setStudios] = useState<any>(null);
+  const [current_status, setCurrent_status] = useState<any>(null);
 
   function getYouTubeVideoId(url: string | URL) {
     try {
@@ -75,6 +76,11 @@ export default function ContentClient({ id }: Props) {
             .split(",")
             .map((studio: string) => studio.trim())
         );
+        setCurrent_status(
+          data.success[0]?.current_status
+            .split(",")
+            .map((studio: string) => studio.trim())
+        );
       } catch (err) {
         console.error("Failed to fetch profile:", err);
       }
@@ -82,6 +88,7 @@ export default function ContentClient({ id }: Props) {
 
     fetchProfile();
   }, [id]);
+  
   const [dots, setDots] = useState<Dot[]>([]);
 
   useEffect(() => {
@@ -118,7 +125,6 @@ export default function ContentClient({ id }: Props) {
     };
   }, [modal2Open, modal1Open]);
 
-
   return (
     <div className="relative text-white bg-black">
       {modal2Open && (
@@ -147,14 +153,13 @@ export default function ContentClient({ id }: Props) {
             <iframe
               width="560"
               height="315"
-              src={content?.trailer_url}
+              src={`https://www.youtube.com/embed/${videoId}`}
               title="YouTube video player"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
               className="object-contain w-full h-full"
-            ></iframe>
+            />
           </div>
         </div>
       )}
@@ -231,25 +236,46 @@ export default function ContentClient({ id }: Props) {
           </div>
 
           <div className="justify-end ml-auto flex flex-col gap-3">
-            <button className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
-              <i className="bi bi-fire mr-2"></i>
-              Mark As Intrested
-              <div className="absolute inset-0 pointer-events-none">
-                {dots.map((dot, idx) => (
-                  <i
-                    key={idx}
-                    className="bi bi-dot absolute animate-slideTop"
-                    style={{
-                      left: dot.left,
-                      bottom: dot.bottom,
-                      width: dot.size,
-                      height: dot.size,
-                      animationDelay: dot.delay,
-                    }}
-                  />
-                ))}
-              </div>
-            </button>
+            {/* mark as intrested */}
+            {current_status == "Upcoming" && (
+              <button className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
+                <i className="bi bi-fire mr-2"></i>
+                Mark As Intrested
+                <div className="absolute inset-0 pointer-events-none">
+                  {dots.map((dot, idx) => (
+                    <i
+                      key={idx}
+                      className="bi bi-dot absolute animate-slideTop"
+                      style={{
+                        left: dot.left,
+                        bottom: dot.bottom,
+                        width: dot.size,
+                        height: dot.size,
+                        animationDelay: dot.delay,
+                      }}
+                    />
+                  ))}
+                </div>
+              </button>
+            )}
+
+            {/* mark as watched */}
+            {current_status == "Released" && (
+              <button className="overflow-hidden relative rounded-full bg-purple-600 py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
+                <i className="bi bi-eye mr-2"></i>
+                Mark As Watched
+                <div className="absolute inset-0 pointer-events-none"></div>
+              </button>
+            )}
+
+            {/* Watched */}
+            {current_status == "watched" && (
+              <button className="overflow-hidden relative rounded-full bg-[#00b83d] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
+                <i className="fa-solid fa-check mr-2"></i>
+                Watched
+                <div className="absolute inset-0 pointer-events-none"></div>
+              </button>
+            )}
             <button className="rounded-full bg-white/10 py-3 px-23 font-semibold text-sm hover:bg-white/20 cursor-pointer">
               <i className="bi bi-bookmark mr-3"></i>
               Add to collection
