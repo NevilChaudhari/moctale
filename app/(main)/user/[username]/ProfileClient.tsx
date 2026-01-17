@@ -14,6 +14,15 @@ interface User {
   last_name?: string;
   bio?: string;
   profile_url?: string;
+  intrestedIn?: string;
+}
+
+interface Media {
+  id: string;
+  title: string;
+  release_date: string;
+  image_url: string;
+  type: string;
 }
 
 export default function LogoutButton({ userId }: Props) {
@@ -26,37 +35,58 @@ export default function LogoutButton({ userId }: Props) {
   const [isSearching, setIsSearching] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
 
-  // Fetch user profile on mount
+  const [intrests, setInterests] = useState<Media[]>([]);
+
+  const handleClick = (item: any) => {
+    console.log(item.id);
+    router.push(`/content/${item.id}`);
+  };
+
+  // Fetch user profile first
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchUser = async () => {
       try {
         const res = await fetch("/api/getUser/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId }),
         });
-
         const data = await res.json();
-
         setUser(data.data ?? null);
-        console.log(data.data);
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
+        console.error("Failed to fetch user:", err);
       }
     };
 
-    fetchProfile();
+    fetchUser();
   }, [userId]);
 
-  const logout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      console.log("Logging out user:", userId);
-      router.push("/");
-    } catch (err) {
-      console.error("Logout failed:", err);
-    }
-  };
+  // Fetch interests AFTER user is loaded
+  useEffect(() => {
+    if (!user?.intrestedIn) return;
+
+    const fetchInterests = async () => {
+      try {
+        const res = await fetch("/api/getIntrests/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ intrestedIn: user.intrestedIn }),
+        });
+
+        const data = await res.json();
+
+        // Ensure it's always an array
+        setInterests(Array.isArray(data.data) ? data.data : [data.data]);
+
+        console.log(intrests);
+      } catch (err) {
+        console.error("Failed to fetch interests:", err);
+        setInterests([]); // fallback
+      }
+    };
+
+    fetchInterests();
+  }, [user]);
 
   return (
     <>
@@ -469,8 +499,12 @@ export default function LogoutButton({ userId }: Props) {
             {/* No Movie Card */}
             <div className="h-50 w-full bg-[#1b1b1b] rounded-xl items-center justify-center flex flex-col">
               <i className="text-3xl bi bi-pencil-square mb-5"></i>
-              <span className="text-md">You haven't posted any reviews yet</span>
-              <span className="text-sm text-[#C6C6C6]">Start sharing your opinions on movies and TV shows</span>
+              <span className="text-md">
+                You haven't posted any reviews yet
+              </span>
+              <span className="text-sm text-[#C6C6C6]">
+                Start sharing your opinions on movies and TV shows
+              </span>
             </div>
           </div>
         </div>
@@ -482,65 +516,39 @@ export default function LogoutButton({ userId }: Props) {
           </h2>
 
           {/* Movie Card */}
-          <div className="border border-[#252525] flex rounded-md w-full gap-2 p-2 hover:bg-[#171717] cursor-pointer">
-            <img src="/L4.jpg" alt="" className="rounded-sm w-10 h-auto" />
-            <div className="w-full flex flex-col">
-              <h3 className="text-[#E2E2E2] font-semibold text-md">
-                Movie Name
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Release Date
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Movie Status
-              </h3>
+          {intrests.map((intrest) => (
+            <div
+              key={intrest.id}
+              onClick={() => handleClick(intrest)}
+              className="border border-[#252525] flex rounded-md w-full gap-2 p-2 hover:bg-[#171717] cursor-pointer"
+            >
+              <img
+                src={intrest.image_url}
+                alt=""
+                className="rounded-sm w-10 h-auto"
+              />
+              <div className="w-full flex flex-col overflow-hidden">
+                <h3 className="text-[#E2E2E2] font-semibold text-md truncate">
+                  {intrest.title}
+                </h3>
+                <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
+                  {intrest.release_date
+                    ? new Date(intrest.release_date).toLocaleDateString(
+                        "en-US",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )
+                    : "—"}
+                </h3>
+                <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
+                  {intrest.type.toUpperCase()}
+                </h3>
+              </div>
             </div>
-          </div>
-          {/* Movie Card */}
-          <div className="border border-[#252525] flex rounded-md w-full gap-2 p-2 hover:bg-[#171717] cursor-pointer">
-            <img src="/L4.jpg" alt="" className="rounded-sm w-10 h-auto" />
-            <div className="w-full flex flex-col">
-              <h3 className="text-[#E2E2E2] font-semibold text-md">
-                Movie Name
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Release Date
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Movie Status
-              </h3>
-            </div>
-          </div>
-          {/* Movie Card */}
-          <div className="border border-[#252525] flex rounded-md w-full gap-2 p-2 hover:bg-[#171717] cursor-pointer">
-            <img src="/L4.jpg" alt="" className="rounded-sm w-10 h-auto" />
-            <div className="w-full flex flex-col">
-              <h3 className="text-[#E2E2E2] font-semibold text-md">
-                Movie Name
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Release Date
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Movie Status
-              </h3>
-            </div>
-          </div>
-          {/* Movie Card */}
-          <div className="border border-[#252525] flex rounded-md w-full gap-2 p-2 hover:bg-[#171717] cursor-pointer">
-            <img src="/L4.jpg" alt="" className="rounded-sm w-10 h-auto" />
-            <div className="w-full flex flex-col">
-              <h3 className="text-[#E2E2E2] font-semibold text-md">
-                Movie Name
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Release Date
-              </h3>
-              <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                Movie Status
-              </h3>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </>

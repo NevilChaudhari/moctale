@@ -2,35 +2,59 @@
 
 /* NProgress top bar */
 #nprogress .bar {
-  background: linear-gradient(90deg, rgba(176, 72, 255, 1) 0%, rgba(143, 68, 240, 1) 100%) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(176, 72, 255, 1) 0%,
+    rgba(143, 68, 240, 1) 100%
+  ) !important;
   height: 2px !important;
   z-index: 9999 !important;
 }
 
 #nprogress .peg {
-  box-shadow: 0 0 10px #b048ff, 0 0 5px #8f44f0 !important;
+  box-shadow:
+    0 0 10px #b048ff,
+    0 0 5px #8f44f0 !important;
 }
 
 #nprogress .spinner {
   display: none !important;
 }
 
+@layer base {
+  :root {
+    --chart-1: oklch(0.646 0.222 41.116);
+    --chart-2: oklch(0.6 0.118 184.704);
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+  }
+
+  .dark {
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+  }
+}
+
 /* Thin scrollbar with custom colors, no arrows */
 
 /* Chrome, Edge, Safari */
 ::-webkit-scrollbar {
-  width: 6px;           /* thin vertical scrollbar */
-  height: 6px;          /* thin horizontal scrollbar */
+  width: 6px; /* thin vertical scrollbar */
+  height: 6px; /* thin horizontal scrollbar */
 }
 
 ::-webkit-scrollbar-track {
-  background: #1b1b1b;  /* track/background */
-  border-radius: 1px;   /* rounded edges */
+  background: #1b1b1b; /* track/background */
+  border-radius: 1px; /* rounded edges */
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #555555;  /* thumb color */
-  border-radius: 3px;         /* rounded edges */
+  background-color: #555555; /* thumb color */
+  border-radius: 3px; /* rounded edges */
   border: 1px solid #1b1b1b; /* optional padding around thumb */
 }
 

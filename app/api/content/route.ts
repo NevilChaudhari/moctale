@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     [id]
   );
 
-  console.log(rows[0]);
+  // console.log(rows[0]);
 
   return NextResponse.json({ success: rows });
 }

@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
     // Type `rows` as User[]
     const [rows] = await db.execute<User[]>(
-      "SELECT username, first_name, last_name, bio, profile_url FROM users WHERE user_id = ? LIMIT 1",
+      "SELECT username, first_name, last_name, bio, profile_url, intrestedIn FROM users WHERE user_id = ? LIMIT 1",
       [userId]
     );
 

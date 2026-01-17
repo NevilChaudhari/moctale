@@ -8,7 +8,7 @@ interface ExploreClientProps {
 export default function ExploreClient({ media }: ExploreClientProps) {
   const router = useRouter();
   const upcomingMovies = media.filter(
-    (item) => item.current_status === "Upcoming"
+    (item) => item.current_status === "upcoming"
   );
   const featuredMovie = upcomingMovies[0];
 

@@ -26,10 +26,14 @@ export default function Home() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "current_status" ? value.toLowerCase() : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,6 +100,7 @@ export default function Home() {
                 >
                   <option value="movie">Movie</option>
                   <option value="series">Series</option>
+                  <option value="series">Anime</option>
                 </select>
               </div>
 
@@ -223,7 +228,7 @@ export default function Home() {
                   onChange={(e) => {
                     const selected = Array.from(
                       e.target.selectedOptions,
-                      (option) => option.value
+                      (option) => option.value,
                     );
                     setFormData((prev) => ({
                       ...prev,
@@ -306,7 +311,7 @@ export default function Home() {
                         {
                           method: "POST",
                           body: formData,
-                        }
+                        },
                       );
                       const data = await res.json();
                       console.log(data);
@@ -363,7 +368,7 @@ export default function Home() {
           <button
             disabled={!canSubmit}
             type="submit"
-            className={`${canSubmit ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:cursor-not-allowed'} w-full text-white font-semibold py-3 rounded-md transition text-lg`}
+            className={`${canSubmit ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-600 hover:cursor-not-allowed"} w-full text-white font-semibold py-3 rounded-md transition text-lg`}
           >
             Submit
           </button>

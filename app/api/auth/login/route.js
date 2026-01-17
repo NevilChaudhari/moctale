@@ -51,7 +51,7 @@ export async function POST(req) {
       }
     }
 
-    const user = users[0];
+    const user = users[0];    
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
 

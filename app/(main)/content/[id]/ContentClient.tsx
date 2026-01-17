@@ -1,5 +1,6 @@
 "use client";
 
+import { ChartRadialStacked } from "@/Components/chart";
 import { useState, useEffect } from "react";
 
 interface Props {
@@ -19,6 +20,47 @@ export default function ContentClient({ id }: Props) {
   const [crew, setCrew] = useState<any>(null);
   const [studios, setStudios] = useState<any>(null);
   const [current_status, setCurrent_status] = useState<any>(null);
+
+  const handleIntrested = async () => {
+    try {
+      const res = await fetch("/api/markIntrested/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // Add to local state immediately
+        setInterests((prev) => [...prev, String(id)]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const [intrests, setInterests] = useState<string[]>([]);
+  const isIntrested = Array.isArray(intrests) && intrests.includes(String(id));
+
+  useEffect(() => {
+    const fetchInterests = async () => {
+      try {
+        const res = await fetch("/api/getIntrestedIn");
+        const data = await res.json();
+
+        if (data.intrestedIn) {
+          setInterests(data.intrestedIn.split(","));
+          console.log(`Intrests: ${data.intrestedIn}`);
+        } else if (data.error) {
+          console.error("Failed to fetch interests:", data.error);
+        }
+      } catch (err) {
+        console.error("Error fetching interests:", err);
+      }
+    };
+
+    fetchInterests();
+  }, []);
 
   function getYouTubeVideoId(url: string | URL) {
     try {
@@ -61,25 +103,25 @@ export default function ContentClient({ id }: Props) {
 
         setContent(data.success[0]);
         setTags(
-          data.success[0]?.tags.split(",").map((tag: string) => tag.trim())
+          data.success[0]?.tags.split(",").map((tag: string) => tag.trim()),
         );
         setActors(
-          data.success[0]?.cast.split(",").map((actor: string) => actor.trim())
+          data.success[0]?.cast.split(",").map((actor: string) => actor.trim()),
         );
         setCrew(
           data.success[0]?.director
             .split(",")
-            .map((crewMember: string) => crewMember.trim())
+            .map((crewMember: string) => crewMember.trim()),
         );
         setStudios(
           data.success[0]?.studios
             .split(",")
-            .map((studio: string) => studio.trim())
+            .map((studio: string) => studio.trim()),
         );
         setCurrent_status(
           data.success[0]?.current_status
             .split(",")
-            .map((studio: string) => studio.trim())
+            .map((studio: string) => studio.trim()),
         );
       } catch (err) {
         console.error("Failed to fetch profile:", err);
@@ -88,7 +130,7 @@ export default function ContentClient({ id }: Props) {
 
     fetchProfile();
   }, [id]);
-  
+
   const [dots, setDots] = useState<Dot[]>([]);
 
   useEffect(() => {
@@ -164,11 +206,17 @@ export default function ContentClient({ id }: Props) {
         </div>
       )}
       <div className="w-full h-[90vh] relative">
-        <img
-          src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
-          alt="poster"
-          className="object-cover w-full h-full opacity-80"
-        />
+        {(content?.trailer_url && videoId) || content?.image_url ? (
+          <img
+            src={
+              content?.trailer_url && videoId
+                ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+                : content?.image_url
+            }
+            alt="poster"
+            className="object-cover w-full h-full opacity-80"
+          />
+        ) : null}
 
         <div
           onClick={() => setModal1Open(true)}
@@ -237,10 +285,15 @@ export default function ContentClient({ id }: Props) {
 
           <div className="justify-end ml-auto flex flex-col gap-3">
             {/* mark as intrested */}
-            {current_status == "Upcoming" && (
-              <button className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
-                <i className="bi bi-fire mr-2"></i>
-                Mark As Intrested
+            {current_status == "upcoming" && (
+              <button
+                onClick={handleIntrested}
+                className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer"
+              >
+                <i
+                  className={`bi ${!isIntrested ? "bi-fire" : "bi-check-lg"} mr-2`}
+                ></i>
+                {!isIntrested ? "Mark As Intrested" : "Intrested"}
                 <div className="absolute inset-0 pointer-events-none">
                   {dots.map((dot, idx) => (
                     <i
@@ -283,120 +336,136 @@ export default function ContentClient({ id }: Props) {
           </div>
         </div>
 
-        <div className="mx-30 my-10">
-          {/* Overview */}
-          <div className="flex flex-col gap-5 border-b border-[#333333] pb-10">
-            <span className="text-[#E2E2E2] text-2xl font-medium">
-              Overview
-            </span>
-            <span className="text-[#B3B3B3] text-md font-medium">
-              {content?.description}
-            </span>
-            <div className="flex gap-3">
-              {tags &&
-                tags.map((tag: string, index: number) => (
-                  <div
-                    key={index}
-                    className="bg-[#171717] hover:bg-[#1F1F1F] px-3 py-2 rounded-xl font-semibold text-sm"
-                  >
-                    {tag}
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* Cast */}
-          <div className="flex flex-col py-15 border-b border-[#333333]">
-            <div>
-              <span className="text-[#E2E2E2] text-2xl font-medium">Cast</span>
-              <div className="flex mt-5 gap-5 overflow-x-auto">
-                {/* Actor Profile */}
-                {actors &&
-                  actors.map((actor: string, index: number) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center gap-1"
-                    >
-                      <div className="rounded-full overflow-hidden w-30 h-30">
-                        <img
-                          src="/C5.jpg"
-                          alt="Actor Image"
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-white">{actor}</span>
-                        <span className="text-[#ABABAB] text-xs"></span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Crew */}
-          <div className="flex flex-col py-15 border-b border-[#333333]">
-            <div>
-              <span className="text-[#E2E2E2] text-2xl font-medium">Crew</span>
-              <div className="flex mt-5 gap-5 overflow-x-auto">
-                {/* Crew Profile */}
-                {crew &&
-                  crew.map((crewMember: string, index: number) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center gap-1"
-                    >
-                      <div className="rounded-full overflow-hidden w-30 h-30">
-                        <img
-                          src="/C9.jpg"
-                          alt="Actor Image"
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-white">{crewMember}</span>
-                        <span className="text-[#ABABAB] text-xs"></span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Production House */}
-          <div className="flex flex-col py-15 border-b border-[#333333]">
-            <div>
+        <div className="flex gap-5">
+          <div className="ml-30 my-10 w-[75%]">
+            {/* Overview */}
+            <div className="flex flex-col gap-5 border-b border-[#333333] pb-10">
               <span className="text-[#E2E2E2] text-2xl font-medium">
-                Production House
+                Overview
               </span>
-              <div className="flex mt-5 gap-5">
-                {/* Card */}
-                {studios &&
-                  studios.map((studio: string, index: number) => (
+              <span className="text-[#B3B3B3] text-md font-medium">
+                {content?.description}
+              </span>
+              <div className="flex gap-3">
+                {tags &&
+                  tags.map((tag: string, index: number) => (
                     <div
                       key={index}
-                      className="border border-[#252833] px-3 py-2 rounded-md hover:bg-[#252525] cursor-pointer"
+                      className="bg-[#171717] hover:bg-[#1F1F1F] px-3 py-2 rounded-xl font-semibold text-sm"
                     >
-                      {studio}
+                      {tag}
                     </div>
                   ))}
               </div>
             </div>
-          </div>
 
-          {/* Discussions */}
-          <div className="flex flex-col py-15 border-b border-[#333333]">
-            <div>
-              <span className="text-[#E2E2E2] text-2xl font-medium">
-                Discussions
-              </span>
-              <div className="flex mt-5 gap-5">
-                <div className="flex justify-center w-full">
-                  <span className="text-white/20 text-3xl font-bold">
-                    Still working on that
-                  </span>
+            {/* Cast */}
+            <div className="flex flex-col py-15 border-b border-[#333333]">
+              <div>
+                <span className="text-[#E2E2E2] text-2xl font-medium">
+                  Cast
+                </span>
+                <div className="flex mt-5 gap-5 overflow-x-auto">
+                  {/* Actor Profile */}
+                  {actors &&
+                    actors.map((actor: string, index: number) => (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <div className="rounded-full overflow-hidden w-30 h-30">
+                          <img
+                            src="https://i.ibb.co/7tKbDGFX/default-profile.jpg"
+                            alt="Actor Image"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-white">{actor}</span>
+                          <span className="text-[#ABABAB] text-xs"></span>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
+            </div>
+
+            {/* Crew */}
+            <div className="flex flex-col py-15 border-b border-[#333333]">
+              <div>
+                <span className="text-[#E2E2E2] text-2xl font-medium">
+                  Crew
+                </span>
+                <div className="flex mt-5 gap-5 overflow-x-auto">
+                  {/* Crew Profile */}
+                  {crew &&
+                    crew.map((crewMember: string, index: number) => (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <div className="rounded-full overflow-hidden w-30 h-30">
+                          <img
+                            src="https://i.ibb.co/7tKbDGFX/default-profile.jpg"
+                            alt="Actor Image"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-white">{crewMember}</span>
+                          <span className="text-[#ABABAB] text-xs"></span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Production House */}
+            <div className="flex flex-col py-15 border-b border-[#333333]">
+              <div>
+                <span className="text-[#E2E2E2] text-2xl font-medium">
+                  Production House
+                </span>
+                <div className="flex mt-5 gap-5">
+                  {/* Card */}
+                  {studios &&
+                    studios.map((studio: string, index: number) => (
+                      <div
+                        key={index}
+                        className="border border-[#252833] px-3 py-2 rounded-md hover:bg-[#252525] cursor-pointer"
+                      >
+                        {studio}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Discussions */}
+            <div className="flex flex-col py-15 border-b border-[#333333]">
+              <div>
+                <span className="text-[#E2E2E2] text-2xl font-medium">
+                  Discussions
+                </span>
+                <div className="flex mt-5 gap-5">
+                  <div className="flex justify-center w-full">
+                    <span className="text-white/20 text-3xl font-bold">
+                      Still working on that
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-[25%] mr-30">
+            <div className="bg-[#1b1b1b] border border-[#252833] rounded-xl">
+              <ChartRadialStacked />
+            </div>
+            <div className="mt-5 p-5 bg-[#1b1b1b] border border-[#252833] rounded-xl">
+              <span>Watch Online</span>
+              <div></div>
             </div>
           </div>
         </div>
