@@ -17,12 +17,32 @@ interface User {
   intrestedIn?: string;
 }
 
-interface Media {
+interface Intrests {
   id: string;
   title: string;
   release_date: string;
   image_url: string;
   type: string;
+}
+
+interface comments {
+  id: number;
+  post_id: number;
+  user_id: number;
+  parent_id: number | null;
+  content: string;
+  created_at: string;
+  category: string | null;
+  likes: number;
+  replies: string;
+}
+
+interface Media {
+  id: number;
+  type: string;
+  title: string;
+  release_date: string;
+  image_url: string;
 }
 
 export default function LogoutButton({ userId }: Props) {
@@ -35,14 +55,13 @@ export default function LogoutButton({ userId }: Props) {
   const [isSearching, setIsSearching] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
 
-  const [intrests, setInterests] = useState<Media[]>([]);
+  const [intrests, setInterests] = useState<Intrests[]>([]);
 
   const handleClick = (item: any) => {
     console.log(item.id);
     router.push(`/content/${item.id}`);
   };
 
-  // Fetch user profile first
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -60,6 +79,65 @@ export default function LogoutButton({ userId }: Props) {
 
     fetchUser();
   }, [userId]);
+
+  const [comments, setComments] = useState<comments[]>([]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!userId) return;
+
+      try {
+        const res = await fetch("/api/comments/fetchUserComments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        const data = await res.json();
+        setComments(data.comments ?? []);
+
+        console.log(`comments:`, data.comments);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+      }
+    };
+
+    fetchComments();
+  }, [userId]);
+
+  const [media, setMedia] = useState<Record<number, Media>>({});
+
+  useEffect(() => {
+    if (!comments.length) return;
+
+    const fetchMedia = async () => {
+      try {
+        const uniqueIds = Array.from(new Set(comments.map((c) => c.post_id)));
+
+        const res = await fetch("/api/getMultipleMedia/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userIds: uniqueIds }),
+        });
+
+        const data = await res.json();
+
+        if (!data.success) return;
+
+        const mediaMap: Record<number, Media> = {};
+
+        data.success.forEach((m: Media) => {
+          mediaMap[m.id] = m;
+        });
+        setMedia(mediaMap);
+
+        console.log(`media: ${mediaMap}`);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      }
+    };
+
+    fetchMedia();
+  }, [comments]);
 
   // Fetch interests AFTER user is loaded
   useEffect(() => {
@@ -268,9 +346,9 @@ export default function LogoutButton({ userId }: Props) {
                 </button>
 
                 <button
-                  onClick={() => setCategories("Skip")}
+                  onClick={() => setCategories("skip")}
                   className={`${
-                    categories === "Skip"
+                    categories === "skip"
                       ? "bg-[#fe647e] text-black"
                       : "text-[#C6C6C6]"
                   } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
@@ -279,9 +357,9 @@ export default function LogoutButton({ userId }: Props) {
                 </button>
 
                 <button
-                  onClick={() => setCategories("Timepass")}
+                  onClick={() => setCategories("timepass")}
                   className={`${
-                    categories === "Timepass"
+                    categories === "timepass"
                       ? "bg-[#fcb700] text-black"
                       : "text-[#C6C6C6]"
                   } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
@@ -290,9 +368,9 @@ export default function LogoutButton({ userId }: Props) {
                 </button>
 
                 <button
-                  onClick={() => setCategories("Goforit")}
+                  onClick={() => setCategories("goforit")}
                   className={`${
-                    categories === "Goforit"
+                    categories === "goforit"
                       ? "bg-[#00d391] text-black"
                       : "text-[#C6C6C6]"
                   } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
@@ -301,9 +379,9 @@ export default function LogoutButton({ userId }: Props) {
                 </button>
 
                 <button
-                  onClick={() => setCategories("Perfection")}
+                  onClick={() => setCategories("perfection")}
                   className={`${
-                    categories === "Perfection"
+                    categories === "perfection"
                       ? "bg-[#b048ff] text-black"
                       : "text-[#C6C6C6]"
                   } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
@@ -400,112 +478,177 @@ export default function LogoutButton({ userId }: Props) {
             }`}
           >
             {/* Movie Card */}
-            {!listView && (
-              <div className="hover:bg-[#1f1f1f] flex rounded-md w-full gap-2 p-2">
-                <img src="/C4.jpg" alt="" className="rounded-sm w-30 h-auto" />
-                <div className="flex flex-col pl-3 pt-3 w-full">
-                  <div className="flex flex-row place-content-between">
-                    <div className="w-full flex flex-col">
-                      <h3 className="text-[#E2E2E2] font-semibold text-lg">
-                        Movie Name
-                      </h3>
-                      <div className="flex gap-1 items-center">
-                        <span className="text-[#C6C6C6] font-semibold text-sm">
-                          Movie
-                        </span>
-                        <span className="text-[#C6C6C6]">•</span>
-                        <span className="text-[#C6C6C6] font-semibold text-sm">
-                          2025
-                        </span>
-                        <span className="text-[#C6C6C6]">•</span>
-                        <span className="text-[#C6C6C6] font-semibold text-sm">
-                          30th Aug 2025
-                        </span>
+            {listView &&
+              comments
+                .filter(
+                  (comment) =>
+                    categories === "All" || comment.category === categories,
+                )
+                .map((comment: comments) => {
+                  const mediaData = media[comment.post_id];
+                  if (!mediaData) return null;
+
+                  return (
+                    <div
+                      key={comment.id}
+                      onClick={() => handleClick(mediaData)}
+                      className="hover:bg-[#1f1f1f] flex rounded-md w-full gap-2 p-2"
+                    >
+                      <img
+                        src={mediaData.image_url}
+                        alt=""
+                        className="rounded-sm w-30 h-auto"
+                      />
+                      <div className="flex flex-col pl-3 pt-3 w-full">
+                        <div className="flex flex-row place-content-between">
+                          <div className="flex flex-col w-full">
+                            <h3 className="text-[#E2E2E2] font-semibold text-lg truncate max-w-85">
+                              {mediaData.title}
+                            </h3>
+
+                            <div className="flex gap-1 items-center">
+                              <span className="text-[#C6C6C6] font-semibold text-sm">
+                                {mediaData.type}
+                              </span>
+                              <span className="text-[#C6C6C6]">•</span>
+                              <span className="text-[#C6C6C6] font-semibold text-sm">
+                                {new Date(mediaData.release_date).getFullYear()}
+                              </span>
+                              <span className="text-[#C6C6C6]">•</span>
+                              <span className="text-[#C6C6C6] font-semibold text-sm">
+                                {new Date(
+                                  comment.created_at,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="w-25 ml-auto text-end">
+                            {comment.category === "skip" && (
+                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fe647e]">
+                                Skip
+                              </span>
+                            )}
+                            {comment.category === "timepass" && (
+                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fcb700]">
+                                Timepass
+                              </span>
+                            )}
+                            {comment.category === "goforit" && (
+                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#00d391]">
+                                Go for it
+                              </span>
+                            )}
+                            {comment.category === "perfection" && (
+                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#b048ff]">
+                                Perfection
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-[#C6C6C6] mt-2">
+                          <span>{comment.content}</span>
+                        </div>
+                        <div className="text-[#C6C6C6] mt-2 flex gap-4 text-xl place-content-between">
+                          <div className="flex mt-2 place-content-between gap-4 text-xl">
+                            {!liked ? (
+                              <i
+                                onClick={() => setLiked(!liked)}
+                                className="bi bi-heart cursor-pointer"
+                              ></i>
+                            ) : (
+                              <i
+                                onClick={() => setLiked(!liked)}
+                                className="bi bi-heart-fill cursor-pointer"
+                              ></i>
+                            )}
+                            <i className="bi bi-chat-left cursor-pointer"></i>
+                          </div>
+                          <div
+                            onClick={() => setShowOptions(!showOptions)}
+                            className="relative flex mt-2 place-content-between gap-4 text-xl cursor-pointer justify-center items-center hover:bg-[#363636] px-2 py-1 rounded-full"
+                          >
+                            <i className="bi bi-three-dots"></i>
+                            {showOptions && (
+                              <div className="rounded-md py-2 text-sm mt-2 w-max absolute top-full right-0 bg-[#2A2A2A]">
+                                <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                                  <i className="bi bi-share"></i>
+                                  Share - Story
+                                </button>
+                                <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                                  <i className="bi bi-share"></i>
+                                  Share - Classic
+                                </button>
+                                <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                                  <i className="bi bi-flag"></i>
+                                  Report
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <span className="bg-[#b048ff] w-auto px-2 py-1 rounded-full text-black text-sm">
-                        Perfection
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-[#C6C6C6] mt-2">
-                    <span>Crazy Time Travel Movie must watch</span>
-                  </div>
-                  <div className="text-[#C6C6C6] mt-2 flex gap-4 text-xl place-content-between">
-                    <div className="flex mt-2 place-content-between gap-4 text-xl">
-                      {!liked && (
-                        <i
-                          onClick={() => setLiked(!liked)}
-                          className="bi bi-heart cursor-pointer"
-                        ></i>
-                      )}
-                      {liked && (
-                        <i
-                          onClick={() => setLiked(!liked)}
-                          className="bi bi-heart-fill cursor-pointer"
-                        ></i>
-                      )}
-                      <i className="bi bi-chat-left cursor-pointer"></i>
-                    </div>
-                    <div
-                      onClick={() => setShowOptions(!showOptions)}
-                      className="relative flex mt-2 place-content-between gap-4 text-xl cursor-pointer justify-center items-center hover:bg-[#363636] px-2 py-1 rounded-full"
-                    >
-                      <i className="bi bi-three-dots"></i>
-                      {showOptions && (
-                        <div className="rounded-md py-2 text-sm mt-2 w-max absolute top-full right-0 bg-[#2A2A2A]">
-                          <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                            <i className="bi bi-share"></i>
-                            Share - Story
-                          </button>
-                          <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                            <i className="bi bi-share"></i>
-                            Share - Clasic
-                          </button>
-                          <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                            <i className="bi bi-flag"></i>
-                            Report
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+                  );
+                })}
 
             {/* Movie Card */}
-            {!listView && (
-              <div className="hover:bg-[#1f1f1f] flex flex-col rounded-md gap-2 p-2 cursor-pointer items-center">
-                <img src="/C4.jpg" alt="" className="rounded-sm w-30 h-auto" />
-                <div className="flex flex-col items-center">
-                  <h3 className="text-[#E2E2E2] font-semibold text-md">
-                    Movie Name
-                  </h3>
-                  <div className="flex gap-1 items-center">
-                    <span className="text-[#E2E2E2] font-semibold text-xs">
-                      Movie
-                    </span>
-                    <span className="text-[#E2E2E2]">•</span>
-                    <span className="text-[#E2E2E2] font-semibold text-xs">
-                      2025
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
+            {!listView &&
+              comments
+                .filter(
+                  (comment) =>
+                    categories === "All" || comment.category === categories,
+                )
+                .map((comment: comments) => {
+                  const mediaData = media[comment.post_id];
+                  if (!mediaData) return null;
+                  const titleTooLong = mediaData.title.length > 20;
+                  return (
+                    <div
+                      onClick={() => handleClick(mediaData)}
+                      className="hover:bg-[#1f1f1f] flex flex-col rounded-md gap-2 p-2 cursor-pointer items-center group"
+                    >
+                      <img
+                        src={mediaData.image_url}
+                        alt=""
+                        className="rounded-sm w-30 h-auto"
+                      />
+                      <div className="flex flex-col items-center w-full">
+                        {/* Title container */}
+                        <div className="relative w-28 overflow-hidden">
+                          <h3
+                            className={`text-[#E2E2E2] font-semibold text-sm whitespace-nowrap`}
+                          >
+                            {mediaData.title}
+                          </h3>
+                        </div>
+
+                        {/* Type & Year */}
+                        <div className="flex gap-1 items-center">
+                          <span className="text-[#E2E2E2] font-semibold text-xs">
+                            {mediaData.type}
+                          </span>
+                          <span className="text-[#E2E2E2]">•</span>
+                          <span className="text-[#E2E2E2] font-semibold text-xs">
+                            {new Date(mediaData.release_date).getFullYear()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
 
             {/* No Movie Card */}
-            <div className="h-50 w-full bg-[#1b1b1b] rounded-xl items-center justify-center flex flex-col">
-              <i className="text-3xl bi bi-pencil-square mb-5"></i>
-              <span className="text-md">
-                You haven't posted any reviews yet
-              </span>
-              <span className="text-sm text-[#C6C6C6]">
-                Start sharing your opinions on movies and TV shows
-              </span>
-            </div>
+            {comments.length <= 0 && (
+              <div className="h-50 w-full bg-[#1b1b1b] rounded-xl items-center justify-center flex flex-col">
+                <i className="text-3xl bi bi-pencil-square mb-5"></i>
+                <span className="text-md">
+                  You haven't posted any reviews yet
+                </span>
+                <span className="text-sm text-[#C6C6C6]">
+                  Start sharing your opinions on movies and TV shows
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
