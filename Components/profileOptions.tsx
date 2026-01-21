@@ -26,7 +26,7 @@ export default function ProfileOptions({
   };
 
   return (
-    <div className="bg-black w-50 p-1 fixed right-30 mt-3 rounded-md border-white/20 border">
+    <div className="z-100 bg-black w-50 p-1 fixed right-30 mt-3 rounded-md border-white/20 border">
       <div
         onClick={() => {
           Profile();

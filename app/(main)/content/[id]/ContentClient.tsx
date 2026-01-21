@@ -1,10 +1,11 @@
 "use client";
 
 import { ChartRadialStacked } from "@/Components/chart";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Props {
   id: string;
+  userId: any;
 }
 interface Dot {
   left: string;
@@ -12,13 +13,53 @@ interface Dot {
   delay: string;
   size: string;
 }
+interface comments {
+  id: number;
+  post_id: number;
+  user_id: number;
+  parent_id: number | null;
+  content: string;
+  created_at: string;
+  category: string | null;
+  likes: number;
+  replies: string;
+}
 
-export default function ContentClient({ id }: Props) {
+interface User {
+  user_id: string;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  bio?: string;
+  profile_url?: string;
+  intrestedIn?: string;
+}
+
+interface Users {
+  user_id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  bio: string | null;
+  profile_url: string | null;
+  intrestedIn: string | null;
+}
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth", // "auto" for instant jump
+  });
+};
+
+
+export default function ContentClient({ id, userId }: Props) {
   const [content, setContent] = useState<any>(null);
   const [tags, setTags] = useState<any>(null);
   const [actors, setActors] = useState<any>(null);
   const [crew, setCrew] = useState<any>(null);
   const [studios, setStudios] = useState<any>(null);
+  const [platforms, setPlatforms] = useState<any>(null);
   const [current_status, setCurrent_status] = useState<any>(null);
 
   const handleIntrested = async () => {
@@ -39,6 +80,136 @@ export default function ContentClient({ id }: Props) {
     }
   };
 
+  const fetchComments = async () => {
+    if (!id) return;
+
+    try {
+      const res = await fetch("/api/comments/fetch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!res.ok) throw new Error("Request failed");
+
+      const data = await res.json();
+      setComments(data.comments ?? []);
+    } catch (err) {
+      console.error("Error fetching comments:", err);
+    }
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState("timepass");
+  const [review, setReview] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [count, setCount] = useState(0);
+  const handleInput = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    textarea.style.height = "auto"; // reset
+    textarea.style.height = `${textarea.scrollHeight}px`; // grow
+
+    setCount(textarea.value.length);
+  };
+
+  const reviewData = {
+    user_id: userId,
+    post_id: id,
+    parent_id: null,
+    content: review,
+    category: selectedCategory,
+  };
+
+  const handlePostReview = async () => {
+    try {
+      const res = await fetch("/api/comments/send/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reviewData),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setReview(""); // clear textarea
+        setCount(0);
+        await fetchComments();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const [comments, setComments] = useState<comments[]>([]);
+  const hasUserCommented = comments.some(
+    (comment) => comment.user_id.toString() === userId,
+  );
+
+  useEffect(() => {
+    if (!id) return;
+
+    fetchComments();
+
+    const interval = setInterval(fetchComments, 5000); // every 5s
+
+    return () => clearInterval(interval);
+  }, [id]);
+
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/getUser/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        const data = await res.json();
+        setUser(data.data ?? null);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  const [users, setUsers] = useState<Record<number, Users>>({});
+
+  useEffect(() => {
+    if (!comments.length) return;
+
+    const fetchUsers = async () => {
+      try {
+        const uniqueIds = Array.from(new Set(comments.map((c) => c.user_id)));
+
+        const res = await fetch("/api/getMultipleUser/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userIds: uniqueIds }),
+        });
+
+        const data = await res.json();
+
+        if (!data.users) return;
+
+        const usersMap: Record<number, Users> = {};
+
+        data.users.forEach((user: Users) => {
+          usersMap[user.user_id] = user;
+        });
+
+        setUsers(usersMap);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      }
+    };
+
+    fetchUsers();
+  }, [comments]);
+
   const [intrests, setInterests] = useState<string[]>([]);
   const isIntrested = Array.isArray(intrests) && intrests.includes(String(id));
 
@@ -50,7 +221,6 @@ export default function ContentClient({ id }: Props) {
 
         if (data.intrestedIn) {
           setInterests(data.intrestedIn.split(","));
-          console.log(`Intrests: ${data.intrestedIn}`);
         } else if (data.error) {
           console.error("Failed to fetch interests:", data.error);
         }
@@ -118,6 +288,11 @@ export default function ContentClient({ id }: Props) {
             .split(",")
             .map((studio: string) => studio.trim()),
         );
+        setPlatforms(
+          data.success[0]?.streaming_platform
+            .split(",")
+            .map((studio: string) => studio.trim()),
+        );
         setCurrent_status(
           data.success[0]?.current_status
             .split(",")
@@ -172,7 +347,7 @@ export default function ContentClient({ id }: Props) {
       {modal2Open && (
         <div className="z-11 absolute w-full h-[90vh] bg-black/50 object-contain flex justify-center items-center">
           <i
-            onClick={() => setModal2Open(false)}
+            onClick={() => {setModal2Open(false); scrollToTop()}}
             className="absolute top-5 right-5 text-3xl cursor-pointer bi bi-x-lg"
           ></i>
           <div className="h-[99%] w-auto">
@@ -188,7 +363,7 @@ export default function ContentClient({ id }: Props) {
       {modal1Open && (
         <div className="z-11 absolute w-full h-[90vh] bg-black/50 object-contain flex justify-center items-center">
           <i
-            onClick={() => setModal1Open(false)}
+            onClick={() => {setModal1Open(false); scrollToTop()}}
             className="absolute top-5 right-5 text-3xl cursor-pointer bi bi-x-lg"
           ></i>
           <div className="w-[60%] h-[80%]">
@@ -219,7 +394,7 @@ export default function ContentClient({ id }: Props) {
         ) : null}
 
         <div
-          onClick={() => setModal1Open(true)}
+          onClick={() => {setModal1Open(true); scrollToTop()}}
           className="z-10 hover:bg-black/90 top-1/3 left-1/2 w-15 h-15 bg-black/70 rounded-full flex items-center justify-center shadow-lg absolute cursor-pointer"
         >
           {/* Play triangle as SVG */}
@@ -237,7 +412,7 @@ export default function ContentClient({ id }: Props) {
 
         <div className="w-full absolute bottom-0 px-30 flex mb-10">
           <div
-            onClick={() => setModal2Open(true)}
+            onClick={() => {setModal2Open(true); scrollToTop()}}
             className="relative rounded-lg h-70 w-50 overflow-hidden cursor-pointer group"
           >
             <div className="z-1 absolute group-hover:bg-black/50 w-full h-full"></div>
@@ -442,17 +617,261 @@ export default function ContentClient({ id }: Props) {
               </div>
             </div>
 
-            {/* Discussions */}
-            <div className="flex flex-col py-15 border-b border-[#333333]">
+            {/* Reviews */}
+            <div className="flex flex-col py-15">
               <div>
                 <span className="text-[#E2E2E2] text-2xl font-medium">
-                  Discussions
+                  Reviews
                 </span>
                 <div className="flex mt-5 gap-5">
-                  <div className="flex justify-center w-full">
-                    <span className="text-white/20 text-3xl font-bold">
-                      Still working on that
-                    </span>
+                  <div className="flex flex-col gap-5 w-full">
+                    {/* Send Review */}
+                    {!hasUserCommented && (
+                      <div className="flex flex-col bg-[#151515] items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]">
+                        {/* Header */}
+                        <div className="flex items-center w-full">
+                          {/* Profile Image */}
+                          <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                            <img
+                              src={user?.profile_url}
+                              alt=""
+                              className="object-contain"
+                            />
+                          </div>
+
+                          {/* Username */}
+                          <div className="ml-3">
+                            <span className="text-md">@</span>
+                            <span className="text-md">{user?.username}</span>
+                          </div>
+
+                          {/* Categories */}
+                          <div className="ml-auto bg-[#1F1F1F] border-[#474747] border h-12 rounded-full flex items-center px-1 py-1 gap-1">
+                            <button
+                              onClick={() => setSelectedCategory("skip")}
+                              className={`${selectedCategory == "skip" ? "bg-[#fe647e] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Skip
+                            </button>
+                            <button
+                              onClick={() => setSelectedCategory("timepass")}
+                              className={`${selectedCategory == "timepass" ? "bg-[#fcb700] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Timepass
+                            </button>
+                            <button
+                              onClick={() => setSelectedCategory("goforit")}
+                              className={`${selectedCategory == "goforit" ? "bg-[#00d391] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Go for it
+                            </button>
+                            <button
+                              onClick={() => setSelectedCategory("perfection")}
+                              className={`${selectedCategory == "perfection" ? "bg-[#b048ff] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Perfection
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="flex items-end w-full mt-5 text-[#B3B3B3] border-b whitespace-pre-wrap wrap-break-word">
+                          <textarea
+                            ref={textareaRef}
+                            onInput={handleInput}
+                            value={review}
+                            onChange={(e) => setReview(e.target.value)}
+                            maxLength={1000}
+                            rows={3}
+                            placeholder="Write your review here..."
+                            className="w-full resize-none overflow-hidden focus:outline-0 text-white"
+                          />
+                          <div className="mt-1 text-bottom text-xs text-gray-500 w-15">
+                            {count} / 1000
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center gap-4 w-full mt-5 text-xl">
+                          <button
+                            onClick={handlePostReview}
+                            className="ml-auto bg-white hover:bg-white/90 text-black text-sm cursor-pointer px-4 py-2 rounded-full"
+                          >
+                            Post
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card Template */}
+                    {comments.map((comment) => {
+                      const commentUser = users[comment.user_id];
+                      return comment.user_id == userId && (
+                        <div
+                          key={comment.id}
+                          className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
+                        >
+                          {/* Header */}
+                          <div className="flex items-center w-full">
+                            {/* Profile Image */}
+                            <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                              <img
+                                src={
+                                  commentUser?.profile_url ??
+                                  "https://i.ibb.co/7tKbDGFX/default-profile.jpg"
+                                }
+                                alt=""
+                                className="object-contain"
+                              />
+                            </div>
+
+                            {/* Username and Date */}
+                            <div className="flex flex-col ml-3">
+                              <span className="text-md">
+                                {commentUser?.username ?? "User"}
+                              </span>
+                              <span className="text-[#B3B3B3] text-sm">
+                                {new Date(
+                                  comment.created_at,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+
+                            {/* Review Category */}
+                            <div className="flex flex-col ml-auto">
+                              {comment.category == "skip" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fe647e]">
+                                  Skip
+                                </div>
+                              )}
+                              {comment.category == "timepass" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fcb700]">
+                                  Timepass
+                                </div>
+                              )}
+                              {comment.category == "goforit" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#00d391]">
+                                  Go for it
+                                </div>
+                              )}
+                              {comment.category == "perfection" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#b048ff]">
+                                  Perfection
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Body */}
+                          <div className="flex items-center w-full mt-5 text-[#B3B3B3] whitespace-pre-wrap wrap-break-word">
+                            <span>{comment.content}</span>
+                          </div>
+
+                          {/* Footer */}
+                          <div className="flex items-center gap-4 w-full mt-5 text-xl">
+                            <div className="flex gap-2 cursor-pointer">
+                              <i className="bi bi-heart"></i>
+                              <span className=" hover:text-[#B3B3B3]">
+                                {comment.likes}
+                              </span>
+                            </div>
+                            <div className="flex gap-2 cursor-pointer">
+                              <i className="bi bi-chat"></i>
+                              <span className=" hover:text-[#B3B3B3]">
+                                {comment.replies}
+                              </span>
+                            </div>
+                            <div className="hover:bg-[#212121] cursor-pointer rounded-full px-2 py-1 text-center ml-auto">
+                              <i className="bi bi-three-dots"></i>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {comments.map((comment) => {
+                      const commentUser = users[comment.user_id];
+                      return comment.user_id != userId && (
+                        <div
+                          key={comment.id}
+                          className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
+                        >
+                          {/* Header */}
+                          <div className="flex items-center w-full">
+                            {/* Profile Image */}
+                            <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                              <img
+                                src={
+                                  commentUser?.profile_url ??
+                                  "https://i.ibb.co/7tKbDGFX/default-profile.jpg"
+                                }
+                                alt=""
+                                className="object-contain"
+                              />
+                            </div>
+
+                            {/* Username and Date */}
+                            <div className="flex flex-col ml-3">
+                              <span className="text-md">
+                                {commentUser?.username ?? "User"}
+                              </span>
+                              <span className="text-[#B3B3B3] text-sm">
+                                {new Date(
+                                  comment.created_at,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+
+                            {/* Review Category */}
+                            <div className="flex flex-col ml-auto">
+                              {comment.category == "skip" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fe647e]">
+                                  Skip
+                                </div>
+                              )}
+                              {comment.category == "timepass" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fcb700]">
+                                  Timepass
+                                </div>
+                              )}
+                              {comment.category == "goforit" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#00d391]">
+                                  Go for it
+                                </div>
+                              )}
+                              {comment.category == "perfection" && (
+                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#b048ff]">
+                                  Perfection
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Body */}
+                          <div className="flex items-center w-full mt-5 text-[#B3B3B3] whitespace-pre-wrap wrap-break-word">
+                            <span>{comment.content}</span>
+                          </div>
+
+                          {/* Footer */}
+                          <div className="flex items-center gap-4 w-full mt-5 text-xl">
+                            <div className="flex gap-2 cursor-pointer">
+                              <i className="bi bi-heart"></i>
+                              <span className=" hover:text-[#B3B3B3]">
+                                {comment.likes}
+                              </span>
+                            </div>
+                            <div className="flex gap-2 cursor-pointer">
+                              <i className="bi bi-chat"></i>
+                              <span className=" hover:text-[#B3B3B3]">
+                                {comment.replies}
+                              </span>
+                            </div>
+                            <div className="hover:bg-[#212121] cursor-pointer rounded-full px-2 py-1 text-center ml-auto">
+                              <i className="bi bi-three-dots"></i>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -465,7 +884,10 @@ export default function ContentClient({ id }: Props) {
             </div>
             <div className="mt-5 p-5 bg-[#1b1b1b] border border-[#252833] rounded-xl">
               <span>Watch Online</span>
-              <div></div>
+              <div className="flex mt-3 px-1 py-3 cursor-pointer hover:bg-[#474747] bg-[#1b1b1b] rounded-md">
+                <div>{platforms}</div>
+                <div className="ml-auto"><i className="bi bi-arrow-up-right"></i></div>
+              </div>
             </div>
           </div>
         </div>
