@@ -30,8 +30,6 @@ export async function POST(req: Request) {
       userIds,
     );
 
-    console.log(rows);
-
     return NextResponse.json({ success: true, users: rows }, { status: 200 });
   } catch (err) {
     console.error("Error fetching users:", err);

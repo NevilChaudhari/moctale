@@ -488,10 +488,15 @@ export default function LogoutButton({ userId }: Props) {
                   const mediaData = media[comment.post_id];
                   if (!mediaData) return false;
 
-                  // If not searching → show everything
-                  if (!isSearching || searchQuery.trim() === "") return true;
+                  // Category filter
+                  const categoryMatch =
+                    categories === "All" || comment.category === categories;
 
-                  // If searching → match title
+                  if (!categoryMatch) return false;
+
+                  // Search filter
+                  if (!isSearching) return true;
+
                   return mediaData.title
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase());
@@ -503,7 +508,6 @@ export default function LogoutButton({ userId }: Props) {
                   return (
                     <div
                       key={comment.id}
-                      onClick={() => handleClick(mediaData)}
                       className="hover:bg-[#1f1f1f] flex rounded-md w-full gap-2 p-2"
                     >
                       <img
@@ -514,7 +518,10 @@ export default function LogoutButton({ userId }: Props) {
                       <div className="flex flex-col pl-3 pt-3 w-full">
                         <div className="flex flex-row place-content-between">
                           <div className="flex flex-col w-full">
-                            <h3 className="text-[#E2E2E2] font-semibold text-lg truncate max-w-85">
+                            <h3
+                              onClick={() => handleClick(mediaData)}
+                              className="text-white hover:text-[#C6C6C6] cursor-pointer font-semibold text-lg truncate max-w-85"
+                            >
                               {mediaData.title}
                             </h3>
 
@@ -610,10 +617,15 @@ export default function LogoutButton({ userId }: Props) {
                   const mediaData = media[comment.post_id];
                   if (!mediaData) return false;
 
-                  // If not searching → show everything
-                  if (!isSearching || searchQuery.trim() === "") return true;
+                  // Category filter
+                  const categoryMatch =
+                    categories === "All" || comment.category === categories;
 
-                  // If searching → match title
+                  if (!categoryMatch) return false;
+
+                  // Search filter
+                  if (!isSearching) return true;
+
                   return mediaData.title
                     .toLowerCase()
                     .includes(searchQuery.toLowerCase());

@@ -52,7 +52,6 @@ const scrollToTop = () => {
   });
 };
 
-
 export default function ContentClient({ id, userId }: Props) {
   const [content, setContent] = useState<any>(null);
   const [tags, setTags] = useState<any>(null);
@@ -61,6 +60,7 @@ export default function ContentClient({ id, userId }: Props) {
   const [studios, setStudios] = useState<any>(null);
   const [platforms, setPlatforms] = useState<any>(null);
   const [current_status, setCurrent_status] = useState<any>(null);
+  const [showOptions, setShowOptions] = useState(false);
 
   const handleIntrested = async () => {
     try {
@@ -101,6 +101,9 @@ export default function ContentClient({ id, userId }: Props) {
 
   const [selectedCategory, setSelectedCategory] = useState("timepass");
   const [review, setReview] = useState("");
+  const [selectedUpdatedCategory, setSelectedUpdatedCategory] =
+    useState("timepass");
+  const [updatedReview, setUpdatedReview] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [count, setCount] = useState(0);
   const handleInput = () => {
@@ -127,6 +130,54 @@ export default function ContentClient({ id, userId }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reviewData),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setReview(""); // clear textarea
+        setCount(0);
+        await fetchComments();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const [editing, setEditing] = useState(false);
+  const [commentId, setCommentId] = useState(0);
+
+  const updatedReviewData = {
+    id: commentId,
+    content: updatedReview,
+    category: selectedUpdatedCategory,
+  };
+
+  const handlePostEdit = async () => {
+    try {
+      const res = await fetch("/api/comments/edit/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedReviewData),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setReview(""); // clear textarea
+        setCount(0);
+        await fetchComments();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handlePostDelete = async (commentId: number) => {
+    try {
+      const res = await fetch("/api/comments/delete/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: commentId }),
       });
 
       const data = await res.json();
@@ -347,7 +398,10 @@ export default function ContentClient({ id, userId }: Props) {
       {modal2Open && (
         <div className="z-11 absolute w-full h-[90vh] bg-black/50 object-contain flex justify-center items-center">
           <i
-            onClick={() => {setModal2Open(false); scrollToTop()}}
+            onClick={() => {
+              setModal2Open(false);
+              scrollToTop();
+            }}
             className="absolute top-5 right-5 text-3xl cursor-pointer bi bi-x-lg"
           ></i>
           <div className="h-[99%] w-auto">
@@ -363,7 +417,10 @@ export default function ContentClient({ id, userId }: Props) {
       {modal1Open && (
         <div className="z-11 absolute w-full h-[90vh] bg-black/50 object-contain flex justify-center items-center">
           <i
-            onClick={() => {setModal1Open(false); scrollToTop()}}
+            onClick={() => {
+              setModal1Open(false);
+              scrollToTop();
+            }}
             className="absolute top-5 right-5 text-3xl cursor-pointer bi bi-x-lg"
           ></i>
           <div className="w-[60%] h-[80%]">
@@ -394,7 +451,10 @@ export default function ContentClient({ id, userId }: Props) {
         ) : null}
 
         <div
-          onClick={() => {setModal1Open(true); scrollToTop()}}
+          onClick={() => {
+            setModal1Open(true);
+            scrollToTop();
+          }}
           className="z-10 hover:bg-black/90 top-1/3 left-1/2 w-15 h-15 bg-black/70 rounded-full flex items-center justify-center shadow-lg absolute cursor-pointer"
         >
           {/* Play triangle as SVG */}
@@ -412,7 +472,10 @@ export default function ContentClient({ id, userId }: Props) {
 
         <div className="w-full absolute bottom-0 px-30 flex mb-10">
           <div
-            onClick={() => {setModal2Open(true); scrollToTop()}}
+            onClick={() => {
+              setModal2Open(true);
+              scrollToTop();
+            }}
             className="relative rounded-lg h-70 w-50 overflow-hidden cursor-pointer group"
           >
             <div className="z-1 absolute group-hover:bg-black/50 w-full h-full"></div>
@@ -488,7 +551,7 @@ export default function ContentClient({ id, userId }: Props) {
             )}
 
             {/* mark as watched */}
-            {current_status == "Released" && (
+            {current_status == "released" && (
               <button className="overflow-hidden relative rounded-full bg-purple-600 py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
                 <i className="bi bi-eye mr-2"></i>
                 Mark As Watched
@@ -703,173 +766,302 @@ export default function ContentClient({ id, userId }: Props) {
                       </div>
                     )}
 
+                    {editing && (
+                      <div className="flex flex-col bg-[#151515] items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]">
+                        {/* Header */}
+                        <div className="flex items-center w-full">
+                          {/* Profile Image */}
+                          <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                            <img
+                              src={user?.profile_url}
+                              alt=""
+                              className="object-contain"
+                            />
+                          </div>
+
+                          {/* Username */}
+                          <div className="ml-3">
+                            <span className="text-md">@</span>
+                            <span className="text-md">{user?.username}</span>
+                          </div>
+
+                          {/* Categories */}
+                          <div className="ml-auto bg-[#1F1F1F] border-[#474747] border h-12 rounded-full flex items-center px-1 py-1 gap-1">
+                            <button
+                              onClick={() => setSelectedUpdatedCategory("skip")}
+                              className={`${selectedUpdatedCategory == "skip" ? "bg-[#fe647e] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Skip
+                            </button>
+                            <button
+                              onClick={() =>
+                                setSelectedUpdatedCategory("timepass")
+                              }
+                              className={`${selectedUpdatedCategory == "timepass" ? "bg-[#fcb700] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Timepass
+                            </button>
+                            <button
+                              onClick={() =>
+                                setSelectedUpdatedCategory("goforit")
+                              }
+                              className={`${selectedUpdatedCategory == "goforit" ? "bg-[#00d391] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Go for it
+                            </button>
+                            <button
+                              onClick={() =>
+                                setSelectedUpdatedCategory("perfection")
+                              }
+                              className={`${selectedUpdatedCategory == "perfection" ? "bg-[#b048ff] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                            >
+                              Perfection
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="flex items-end w-full mt-5 text-[#B3B3B3] border-b whitespace-pre-wrap wrap-break-word">
+                          <textarea
+                            ref={textareaRef}
+                            onInput={handleInput}
+                            value={updatedReview}
+                            onChange={(e) => setUpdatedReview(e.target.value)}
+                            maxLength={1000}
+                            rows={3}
+                            placeholder="Write your review here..."
+                            className="w-full resize-none overflow-hidden focus:outline-0 text-white"
+                          />
+                          <div className="mt-1 text-bottom text-xs text-gray-500 w-15">
+                            {count} / 1000
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center gap-4 w-full mt-5 text-xl">
+                          <div className="flex gap-2 ml-auto">
+                            <button
+                              onClick={() => setEditing(false)}
+                              className="ml-aut text-white hover:bg-[#2a2a2a] text-sm cursor-pointer px-4 py-2 rounded-full"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => {
+                                handlePostEdit();
+                                setEditing(false);
+                              }}
+                              className="ml-auto bg-white hover:bg-white/90 text-black text-sm cursor-pointer px-4 py-2 rounded-full"
+                            >
+                              Update
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Card Template */}
                     {comments.map((comment) => {
                       const commentUser = users[comment.user_id];
-                      return comment.user_id == userId && (
-                        <div
-                          key={comment.id}
-                          className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
-                        >
-                          {/* Header */}
-                          <div className="flex items-center w-full">
-                            {/* Profile Image */}
-                            <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
-                              <img
-                                src={
-                                  commentUser?.profile_url ??
-                                  "https://i.ibb.co/7tKbDGFX/default-profile.jpg"
-                                }
-                                alt=""
-                                className="object-contain"
-                              />
+                      return (
+                        !editing &&
+                        comment.user_id == userId && (
+                          <div
+                            key={comment.id}
+                            className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
+                          >
+                            {/* Header */}
+                            <div className="flex items-center w-full">
+                              {/* Profile Image */}
+                              <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                                <img
+                                  src={
+                                    commentUser?.profile_url ??
+                                    "https://i.ibb.co/7tKbDGFX/default-profile.jpg"
+                                  }
+                                  alt=""
+                                  className="object-contain"
+                                />
+                              </div>
+
+                              {/* Username and Date */}
+                              <div className="flex flex-col ml-3">
+                                <span className="text-md">
+                                  {commentUser?.username ?? "User"}
+                                </span>
+                                <span className="text-[#B3B3B3] text-sm">
+                                  {new Date(
+                                    comment.created_at,
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+
+                              {/* Review Category */}
+                              <div className="flex flex-col ml-auto">
+                                {comment.category == "skip" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fe647e]">
+                                    Skip
+                                  </div>
+                                )}
+                                {comment.category == "timepass" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fcb700]">
+                                    Timepass
+                                  </div>
+                                )}
+                                {comment.category == "goforit" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#00d391]">
+                                    Go for it
+                                  </div>
+                                )}
+                                {comment.category == "perfection" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#b048ff]">
+                                    Perfection
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
-                            {/* Username and Date */}
-                            <div className="flex flex-col ml-3">
-                              <span className="text-md">
-                                {commentUser?.username ?? "User"}
-                              </span>
-                              <span className="text-[#B3B3B3] text-sm">
-                                {new Date(
-                                  comment.created_at,
-                                ).toLocaleDateString()}
-                              </span>
+                            {/* Body */}
+                            <div className="flex items-center w-full mt-5 text-[#B3B3B3] whitespace-pre-wrap wrap-break-word">
+                              <span>{comment.content}</span>
                             </div>
 
-                            {/* Review Category */}
-                            <div className="flex flex-col ml-auto">
-                              {comment.category == "skip" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fe647e]">
-                                  Skip
-                                </div>
-                              )}
-                              {comment.category == "timepass" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fcb700]">
-                                  Timepass
-                                </div>
-                              )}
-                              {comment.category == "goforit" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#00d391]">
-                                  Go for it
-                                </div>
-                              )}
-                              {comment.category == "perfection" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#b048ff]">
-                                  Perfection
-                                </div>
-                              )}
+                            {/* Footer */}
+                            <div className="flex items-center gap-4 w-full mt-5 text-xl">
+                              <div className="flex gap-2 cursor-pointer">
+                                <i className="bi bi-heart"></i>
+                                <span className=" hover:text-[#B3B3B3]">
+                                  {comment.likes}
+                                </span>
+                              </div>
+                              <div className="flex gap-2 cursor-pointer">
+                                <i className="bi bi-chat"></i>
+                                <span className=" hover:text-[#B3B3B3]">
+                                  {comment.replies}
+                                </span>
+                              </div>
+                              <div
+                                onClick={() => setShowOptions(!showOptions)}
+                                className="relative hover:bg-[#212121] cursor-pointer rounded-full px-2 py-1 text-center ml-auto"
+                              >
+                                <i className="bi bi-three-dots"></i>
+                                {showOptions && (
+                                  <div className="rounded-md py-2 text-sm mt-2 w-max absolute top-full right-0 bg-[#2A2A2A]">
+                                    <button
+                                      onClick={() => {
+                                        setEditing(true);
+                                        setCommentId(comment.id);
+                                        setUpdatedReview(comment.content);
+                                        setSelectedUpdatedCategory(
+                                          comment.category ?? "timepass",
+                                        );
+                                      }}
+                                      className="w-30 flex gap-3 items-center px-2 py-2 cursor-pointer hover:bg-white/5"
+                                    >
+                                      <i className="bi bi-pencil-square"></i>
+                                      Edit
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        handlePostDelete(comment.id);
+                                      }}
+                                      className="hover:bg-[#fe647e]/5 text-[#fe647e] w-30 flex gap-3 items-center px-2 py-2 cursor-pointer"
+                                    >
+                                      <i className="bi bi-trash text-sm"></i>
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-
-                          {/* Body */}
-                          <div className="flex items-center w-full mt-5 text-[#B3B3B3] whitespace-pre-wrap wrap-break-word">
-                            <span>{comment.content}</span>
-                          </div>
-
-                          {/* Footer */}
-                          <div className="flex items-center gap-4 w-full mt-5 text-xl">
-                            <div className="flex gap-2 cursor-pointer">
-                              <i className="bi bi-heart"></i>
-                              <span className=" hover:text-[#B3B3B3]">
-                                {comment.likes}
-                              </span>
-                            </div>
-                            <div className="flex gap-2 cursor-pointer">
-                              <i className="bi bi-chat"></i>
-                              <span className=" hover:text-[#B3B3B3]">
-                                {comment.replies}
-                              </span>
-                            </div>
-                            <div className="hover:bg-[#212121] cursor-pointer rounded-full px-2 py-1 text-center ml-auto">
-                              <i className="bi bi-three-dots"></i>
-                            </div>
-                          </div>
-                        </div>
+                        )
                       );
                     })}
                     {comments.map((comment) => {
                       const commentUser = users[comment.user_id];
-                      return comment.user_id != userId && (
-                        <div
-                          key={comment.id}
-                          className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
-                        >
-                          {/* Header */}
-                          <div className="flex items-center w-full">
-                            {/* Profile Image */}
-                            <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
-                              <img
-                                src={
-                                  commentUser?.profile_url ??
-                                  "https://i.ibb.co/7tKbDGFX/default-profile.jpg"
-                                }
-                                alt=""
-                                className="object-contain"
-                              />
+                      return (
+                        comment.user_id != userId && (
+                          <div
+                            key={comment.id}
+                            className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
+                          >
+                            {/* Header */}
+                            <div className="flex items-center w-full">
+                              {/* Profile Image */}
+                              <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                                <img
+                                  src={
+                                    commentUser?.profile_url ??
+                                    "https://i.ibb.co/7tKbDGFX/default-profile.jpg"
+                                  }
+                                  alt=""
+                                  className="object-contain"
+                                />
+                              </div>
+
+                              {/* Username and Date */}
+                              <div className="flex flex-col ml-3">
+                                <span className="text-md">
+                                  {commentUser?.username ?? "User"}
+                                </span>
+                                <span className="text-[#B3B3B3] text-sm">
+                                  {new Date(
+                                    comment.created_at,
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+
+                              {/* Review Category */}
+                              <div className="flex flex-col ml-auto">
+                                {comment.category == "skip" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fe647e]">
+                                    Skip
+                                  </div>
+                                )}
+                                {comment.category == "timepass" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fcb700]">
+                                    Timepass
+                                  </div>
+                                )}
+                                {comment.category == "goforit" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#00d391]">
+                                    Go for it
+                                  </div>
+                                )}
+                                {comment.category == "perfection" && (
+                                  <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#b048ff]">
+                                    Perfection
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
-                            {/* Username and Date */}
-                            <div className="flex flex-col ml-3">
-                              <span className="text-md">
-                                {commentUser?.username ?? "User"}
-                              </span>
-                              <span className="text-[#B3B3B3] text-sm">
-                                {new Date(
-                                  comment.created_at,
-                                ).toLocaleDateString()}
-                              </span>
+                            {/* Body */}
+                            <div className="flex items-center w-full mt-5 text-[#B3B3B3] whitespace-pre-wrap wrap-break-word">
+                              <span>{comment.content}</span>
                             </div>
 
-                            {/* Review Category */}
-                            <div className="flex flex-col ml-auto">
-                              {comment.category == "skip" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fe647e]">
-                                  Skip
-                                </div>
-                              )}
-                              {comment.category == "timepass" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#fcb700]">
-                                  Timepass
-                                </div>
-                              )}
-                              {comment.category == "goforit" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#00d391]">
-                                  Go for it
-                                </div>
-                              )}
-                              {comment.category == "perfection" && (
-                                <div className="text-black text-xs font-bold rounded-full px-2 py-1 bg-[#b048ff]">
-                                  Perfection
-                                </div>
-                              )}
+                            {/* Footer */}
+                            <div className="flex items-center gap-4 w-full mt-5 text-xl">
+                              <div className="flex gap-2 cursor-pointer">
+                                <i className="bi bi-heart"></i>
+                                <span className=" hover:text-[#B3B3B3]">
+                                  {comment.likes}
+                                </span>
+                              </div>
+                              <div className="flex gap-2 cursor-pointer">
+                                <i className="bi bi-chat"></i>
+                                <span className=" hover:text-[#B3B3B3]">
+                                  {comment.replies}
+                                </span>
+                              </div>
+                              <div className="hover:bg-[#212121] cursor-pointer rounded-full px-2 py-1 text-center ml-auto">
+                                <i className="bi bi-three-dots"></i>
+                              </div>
                             </div>
                           </div>
-
-                          {/* Body */}
-                          <div className="flex items-center w-full mt-5 text-[#B3B3B3] whitespace-pre-wrap wrap-break-word">
-                            <span>{comment.content}</span>
-                          </div>
-
-                          {/* Footer */}
-                          <div className="flex items-center gap-4 w-full mt-5 text-xl">
-                            <div className="flex gap-2 cursor-pointer">
-                              <i className="bi bi-heart"></i>
-                              <span className=" hover:text-[#B3B3B3]">
-                                {comment.likes}
-                              </span>
-                            </div>
-                            <div className="flex gap-2 cursor-pointer">
-                              <i className="bi bi-chat"></i>
-                              <span className=" hover:text-[#B3B3B3]">
-                                {comment.replies}
-                              </span>
-                            </div>
-                            <div className="hover:bg-[#212121] cursor-pointer rounded-full px-2 py-1 text-center ml-auto">
-                              <i className="bi bi-three-dots"></i>
-                            </div>
-                          </div>
-                        </div>
+                        )
                       );
                     })}
                   </div>
@@ -886,7 +1078,9 @@ export default function ContentClient({ id, userId }: Props) {
               <span>Watch Online</span>
               <div className="flex mt-3 px-1 py-3 cursor-pointer hover:bg-[#474747] bg-[#1b1b1b] rounded-md">
                 <div>{platforms}</div>
-                <div className="ml-auto"><i className="bi bi-arrow-up-right"></i></div>
+                <div className="ml-auto">
+                  <i className="bi bi-arrow-up-right"></i>
+                </div>
               </div>
             </div>
           </div>
