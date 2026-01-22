@@ -139,6 +139,8 @@ export default function LogoutButton({ userId }: Props) {
     fetchMedia();
   }, [comments]);
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Fetch interests AFTER user is loaded
   useEffect(() => {
     if (!user?.intrestedIn) return;
@@ -399,6 +401,8 @@ export default function LogoutButton({ userId }: Props) {
                   type="text"
                   className="w-full py-1 focus:outline-0"
                   placeholder="Search Reviews..."
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchQuery}
                 />
               </div>
             )}
@@ -480,10 +484,18 @@ export default function LogoutButton({ userId }: Props) {
             {/* Movie Card */}
             {listView &&
               comments
-                .filter(
-                  (comment) =>
-                    categories === "All" || comment.category === categories,
-                )
+                .filter((comment) => {
+                  const mediaData = media[comment.post_id];
+                  if (!mediaData) return false;
+
+                  // If not searching → show everything
+                  if (!isSearching || searchQuery.trim() === "") return true;
+
+                  // If searching → match title
+                  return mediaData.title
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase());
+                })
                 .map((comment: comments) => {
                   const mediaData = media[comment.post_id];
                   if (!mediaData) return null;
@@ -594,10 +606,18 @@ export default function LogoutButton({ userId }: Props) {
             {/* Movie Card */}
             {!listView &&
               comments
-                .filter(
-                  (comment) =>
-                    categories === "All" || comment.category === categories,
-                )
+                .filter((comment) => {
+                  const mediaData = media[comment.post_id];
+                  if (!mediaData) return false;
+
+                  // If not searching → show everything
+                  if (!isSearching || searchQuery.trim() === "") return true;
+
+                  // If searching → match title
+                  return mediaData.title
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase());
+                })
                 .map((comment: comments) => {
                   const mediaData = media[comment.post_id];
                   if (!mediaData) return null;
