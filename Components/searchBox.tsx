@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter  } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface Movie {
@@ -19,7 +19,7 @@ interface User {
   id: number;
   name: string;
   username: string;
-  profile_path: string | null;
+  profile_url: string | null;
 }
 
 export default function SearchBox() {
@@ -79,8 +79,7 @@ export default function SearchBox() {
   };
 
   return (
-    <div className="fixed text-white px-30 bg-black w-full border-white/20 border-b z-20">
-      {/* <div className="border border-white/20 rounded-md my-4 px-2 flex bg-[#171717]"> */}
+    <div className="fixed text-white px-4 md:px-30 bg-black w-full border-white/20 border-b z-20">
       <form
         onSubmit={(e) => {
           e.preventDefault(); // prevent page reload
@@ -99,31 +98,27 @@ export default function SearchBox() {
           placeholder="Search for Movies, Shows, Anime, Cast, & Crew or Users..."
         />
       </form>
-      {/* </div> */}
 
-      <div className="h-100 overflow-y-auto">
+      <div className="h-screen md:h-100 overflow-y-auto overflow-scroll pb-60">
         <div className="w-full border-b border-white/20 mt-2 mb-8">
           <button
             onClick={() => setSearchType("1")}
-            className={`${
-              searchType == "1" ? "text-white  border-b-2" : "text-gray-400"
-            } font-semibold text-sm cursor-pointer hover:text-white`}
+            className={`${searchType == "1" ? "text-white  border-b-2" : "text-gray-400"
+              } font-semibold text-sm cursor-pointer hover:text-white`}
           >
             Content
           </button>
           <button
             onClick={() => setSearchType("2")}
-            className={`${
-              searchType == "2" ? "text-white  border-b-2" : "text-gray-400"
-            } font-semibold text-sm cursor-pointer hover:text-white mx-8`}
+            className={`${searchType == "2" ? "text-white  border-b-2" : "text-gray-400"
+              } font-semibold text-sm cursor-pointer hover:text-white mx-8`}
           >
             Cast & Crew
           </button>
           <button
             onClick={() => setSearchType("3")}
-            className={`${
-              searchType == "3" ? "text-white  border-b-2" : "text-gray-400"
-            } font-semibold text-sm cursor-pointer hover:text-white`}
+            className={`${searchType == "3" ? "text-white  border-b-2" : "text-gray-400"
+              } font-semibold text-sm cursor-pointer hover:text-white`}
           >
             Users
           </button>
@@ -174,7 +169,7 @@ export default function SearchBox() {
                 SEARCH RESULTS
               </label>
             </div>
-            <div className="grid grid-cols-4 mt-5 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 mt-5 gap-3">
               {/* Movie Card */}
               {movies.map((item) => (
                 <div
@@ -248,16 +243,16 @@ export default function SearchBox() {
                 SEARCH RESULTS
               </label>
             </div>
-            <div className="grid grid-cols-7 mt-5 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-7 mt-5 gap-3">
               {/* Movie Card */}
               {users.map((item) => (
                 <div
                   key={item.id || item.username}
-                  className=" bg-[#171717] hover:bg-[#1F1F1F] justify-center items-center cursor-pointer rounded-lg p-3 flex flex-col gap-3"
+                  className=" bg-[#171717] hover:bg-[#1F1F1F] md:justify-center items-center cursor-pointer rounded-lg p-3 flex md:flex-col gap-3"
                 >
-                  <div className="w-30 h-30 flex justify-center items-center rounded-full overflow-hidden">
+                  <div className="w-15 h-15 md:w-30 md:h-30 flex justify-center items-center rounded-full overflow-hidden">
                     <img
-                      src={`https://image.tmdb.org/t/p/w200${item.profile_path}`}
+                      src={item.profile_url ?? 'https://i.ibb.co/7tKbDGFX/default-profile.jpg'}
                       alt=""
                       className="object-contain"
                     />
@@ -271,13 +266,13 @@ export default function SearchBox() {
           </div>
         )}
 
-        {movies.length == 0 && isSearching && searchType=='1' &&(
+        {movies.length == 0 && isSearching && searchType == '1' && (
           <NoResultsUI />
         )}
-        {cast.length == 0 && isSearching && searchType=='2' &&(
+        {cast.length == 0 && isSearching && searchType == '2' && (
           <NoResultsUI />
         )}
-        {users.length == 0 && isSearching && searchType=='3' &&(
+        {users.length == 0 && isSearching && searchType == '3' && (
           <NoResultsUI />
         )}
 

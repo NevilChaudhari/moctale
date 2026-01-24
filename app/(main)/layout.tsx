@@ -5,6 +5,7 @@ import TopProgressBar from "./TopProgressBar";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import NavBar from "@/Components/navbar";
+import Footer from "@/Components/footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,6 +25,7 @@ export default async function RootLayout({
       <NavBar userId={userId?.value} />
       <TopProgressBar />
       <div className="h-screen bg-black">{children}</div>
+      <Footer userId={userId?.value} />
     </>
   );
 }

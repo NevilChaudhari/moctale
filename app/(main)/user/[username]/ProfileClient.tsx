@@ -170,21 +170,42 @@ export default function LogoutButton({ userId }: Props) {
 
   return (
     <>
-      <div className="bg-black h-auto text-white px-32 py-8 flex gap-6">
+      <div className="bg-black h-auto text-white px-3 md:px-32 py-8 flex md:flex-row flex-col gap-6">
         {/* Profile Info */}
-        <div className="bg-[#1b1b1b] w-[25%] p-5 border-[#252833] border h-full rounded-lg">
-          <div className="items-center justify-center flex flex-col border-b border-gray-700 pb-5">
+        <div className="md:bg-[#1b1b1b] w-full md:w-[25%] md:p-5 border-[#252833] md:border h-full rounded-lg">
+          <div className="items-start md:items-center justify-center flex flex-col md:border-b border-gray-700 md:pb-5">
             {/* Profile Image */}
-            <div className="w-35 h-35 overflow-hidden">
-              <img
-                src={user?.profile_url || "Loading"}
-                className="w-full h-full object-cover rounded-full border-gray-50/40 border-2"
-                alt=""
-              />
+            <div className="items-center flex md:block gap-10">
+              <div className="w-25 h-25 overflow-hidden">
+                <img
+                  src={user?.profile_url || "Loading"}
+                  className="w-full h-full object-cover rounded-full border-gray-50/40 border-2"
+                  alt=""
+                />
+              </div>
+
+              {/* User Info */}
+              <div className="flex mt-5 text-center gap-10 md:hidden">
+                <div className="flex flex-col text-center">
+                  <span className="text-md font-semibold">3</span>
+                  <span className="text-[10px] text-[#C6C6C6]">Reviews</span>
+                  <span className="text-[10px] text-[#C6C6C6]">Posted</span>
+                </div>
+                <div className="flex flex-col text-center">
+                  <span className="text-md font-semibold">4</span>
+                  <span className="text-[10px] text-[#C6C6C6]">Posts</span>
+                  <span className="text-[10px] text-[#C6C6C6]">Created</span>
+                </div>
+                <div className="flex flex-col text-center">
+                  <span className="text-md font-semibold">1</span>
+                  <span className="text-[10px] text-[#C6C6C6]">Public</span>
+                  <span className="text-[10px] text-[#C6C6C6]">Collections</span>
+                </div>
+              </div>
             </div>
 
             {/* User Data */}
-            <div className="mt-4 text-center">
+            <div className="mt-4 items-start md:text-center">
               <h2 className="text-md font-semibold">
                 {user?.first_name || "Loading..."} {user?.last_name || ""}
               </h2>
@@ -194,7 +215,7 @@ export default function LogoutButton({ userId }: Props) {
             </div>
 
             {/* User Info */}
-            <div className="flex mt-5 text-center gap-10">
+            <div className="mt-5 text-center gap-10 hidden md:flex">
               <div className="flex flex-col text-center">
                 <span className="text-md font-semibold">3</span>
                 <span className="text-[10px] text-[#C6C6C6]">Reviews</span>
@@ -246,15 +267,14 @@ export default function LogoutButton({ userId }: Props) {
         </div>
 
         {/* Reviews, Posts and Collections */}
-        <div className="w-[50%] h-full flex flex-col rounded-lg">
-          <div className="w-full h-12 p-1 bg-[#131313] rounded-2xl flex">
+        <div className="order-2 md:order-1 w-full md:w-[50%] h-full flex flex-col rounded-lg">
+          <div className="w-full h-12 p-1 bg-[#131313] md:rounded-2xl flex">
             <button
               onClick={() => setType("Reviews")}
-              className={`${
-                type === "Reviews"
-                  ? "bg-[#474747] text-white"
-                  : "text-[#C6C6C6]"
-              } opacity-100 w-1/3 h-full cursor-pointer rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
+              className={`${type === "Reviews"
+                ? "md:bg-[#474747] md:border-0 border-b text-white"
+                : "text-[#C6C6C6]"
+                } opacity-100 w-1/3 h-full cursor-pointer md:rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -266,21 +286,19 @@ export default function LogoutButton({ userId }: Props) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`lucide lucide-square-pen w-5 h-5 transition-colors duration-300 text-[#E2E2E2] ${
-                  type === "Reviews" ? "opacity-100" : "opacity-60"
-                }`}
+                className={`lucide lucide-square-pen w-5 h-5 transition-colors duration-300 text-[#E2E2E2] ${type === "Reviews" ? "opacity-100" : "opacity-60"
+                  }`}
               >
                 <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path>
               </svg>
-              Reviews
+              <span className="hidden md:block">Reviews</span>
             </button>
 
             <button
               onClick={() => setType("Posts")}
-              className={`${
-                type === "Posts" ? "bg-[#474747] text-white" : "text-[#C6C6C6]"
-              } opacity-100 w-1/3 h-full cursor-pointer rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
+              className={`${type === "Posts" ? "md:bg-[#474747] md:border-0 border-b text-white" : "text-[#C6C6C6]"
+                } opacity-100 w-1/3 h-full cursor-pointer md:rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -292,22 +310,20 @@ export default function LogoutButton({ userId }: Props) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`lucide lucide-message-square w-5 h-5 transition-colors duration-300 text-[#C6C6C6] ${
-                  type === "Posts" ? "opacity-100" : "opacity-60"
-                }`}
+                className={`lucide lucide-message-square w-5 h-5 transition-colors duration-300 text-[#C6C6C6] ${type === "Posts" ? "opacity-100" : "opacity-60"
+                  }`}
               >
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
               </svg>
-              Posts
+              <span className="hidden md:block">Posts</span>
             </button>
 
             <button
               onClick={() => setType("Collections")}
-              className={`${
-                type === "Collections"
-                  ? "bg-[#474747] text-white"
-                  : "text-[#C6C6C6]"
-              } opacity-100 w-1/3 h-full cursor-pointer rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
+              className={`${type === "Collections"
+                ? "md:bg-[#474747] md:border-0 border-b text-white"
+                : "text-[#C6C6C6]"
+                } opacity-100 w-1/3 h-full cursor-pointer md:rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -319,74 +335,68 @@ export default function LogoutButton({ userId }: Props) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`lucide lucide-list-video w-5 h-5 transition-colors duration-300 text-[#C6C6C6] ${
-                  type === "Collections" ? "opacity-100" : "opacity-60"
-                }`}
+                className={`lucide lucide-list-video w-5 h-5 transition-colors duration-300 text-[#C6C6C6] ${type === "Collections" ? "opacity-100" : "opacity-60"
+                  }`}
               >
                 <path d="M12 12H3"></path>
                 <path d="M16 6H3"></path>
                 <path d="M12 18H3"></path>
                 <path d="m16 12 5 3-5 3v-6Z"></path>
               </svg>
-              Collections
+              <span className="hidden md:block">Collections</span>
             </button>
           </div>
 
           <div className="w-full flex items-center justify-between pt-5">
             {/* Categories */}
             {!isSearching && (
-              <div className="bg-[#1b1b1b] h-8 rounded-2xl flex items-center px-1 py-1 gap-1">
+              <div className="bg-[#1b1b1b] h-8 rounded-2xl md:flex items-center px-1 py-1 gap-1 hidden">
                 <button
                   onClick={() => setCategories("All")}
-                  className={`${
-                    categories === "All"
-                      ? "bg-[#474747] text-white"
-                      : "text-[#C6C6C6]"
-                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  className={`${categories === "All"
+                    ? "bg-[#474747] text-white"
+                    : "text-[#C6C6C6]"
+                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   All
                 </button>
 
                 <button
                   onClick={() => setCategories("skip")}
-                  className={`${
-                    categories === "skip"
-                      ? "bg-[#fe647e] text-black"
-                      : "text-[#C6C6C6]"
-                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  className={`${categories === "skip"
+                    ? "bg-[#fe647e] text-black"
+                    : "text-[#C6C6C6]"
+                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Skip
                 </button>
 
                 <button
                   onClick={() => setCategories("timepass")}
-                  className={`${
-                    categories === "timepass"
-                      ? "bg-[#fcb700] text-black"
-                      : "text-[#C6C6C6]"
-                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  className={`${categories === "timepass"
+                    ? "bg-[#fcb700] text-black"
+                    : "text-[#C6C6C6]"
+                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Timepass
                 </button>
 
                 <button
                   onClick={() => setCategories("goforit")}
-                  className={`${
-                    categories === "goforit"
-                      ? "bg-[#00d391] text-black"
-                      : "text-[#C6C6C6]"
-                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  className={`${categories === "goforit"
+                    ? "bg-[#00d391] text-black"
+                    : "text-[#C6C6C6]"
+                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Go For It
                 </button>
 
                 <button
                   onClick={() => setCategories("perfection")}
-                  className={`${
-                    categories === "perfection"
-                      ? "bg-[#b048ff] text-black"
-                      : "text-[#C6C6C6]"
-                  } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  className={`${categories === "perfection"
+                    ? "bg-[#b048ff] text-black"
+                    : "text-[#C6C6C6]"
+                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Perfection
                 </button>
@@ -395,7 +405,7 @@ export default function LogoutButton({ userId }: Props) {
 
             {/* Search Box */}
             {isSearching && (
-              <div className=" w-full mr-2 text-[#E2E2E2] border border-[#252833] rounded-xl bg-[#1b1b1b] flex justify-center items-center gap-3 px-2">
+              <div className="w-full mr-2 text-[#E2E2E2] border border-[#252833] rounded-xl bg-[#1b1b1b] flex justify-center items-center gap-3 px-2">
                 <i className="bi bi-search"></i>
                 <input
                   type="text"
@@ -408,13 +418,12 @@ export default function LogoutButton({ userId }: Props) {
             )}
 
             {/* View Type */}
-            <div className="h-8 rounded-2xl flex items-center mt-t">
+            <div className="ml-auto h-8 rounded-2xl flex items-center mt-t">
               {!isSearching && (
                 <button
                   onClick={() => setListView(true)}
-                  className={`${
-                    listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
-                  } p-3 rounded-l-md cursor-pointer`}
+                  className={`${listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
+                    } p-2 md:p-3 rounded-l-md cursor-pointer`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -440,9 +449,8 @@ export default function LogoutButton({ userId }: Props) {
               {!isSearching && (
                 <button
                   onClick={() => setListView(false)}
-                  className={`${
-                    !listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
-                  } p-3 rounded-r-md cursor-pointer`}
+                  className={`${!listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
+                    } p-2 md:p-3 rounded-r-md cursor-pointer`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -467,7 +475,7 @@ export default function LogoutButton({ userId }: Props) {
                 onClick={() => {
                   setIsSearching(!isSearching);
                 }}
-                className={`bg-[#1b1b1b] px-3 py-2 rounded-full cursor-pointer ml-2`}
+                className={`bg-[#1b1b1b] px-2 py-1 md:px-3 md:py-2 rounded-full cursor-pointer ml-2`}
               >
                 {!isSearching && <i className="bi bi-search"></i>}
                 {isSearching && <i className="bi bi-x-lg"></i>}
@@ -477,11 +485,10 @@ export default function LogoutButton({ userId }: Props) {
 
           {/* List */}
           <div
-            className={`my-5 flex gap-1 ${
-              listView ? "flex-col" : "grid grid-cols-4"
-            }`}
+            className={`my-5 flex gap-1 ${listView ? "flex-col" : "grid grid-cols-2 md:grid-cols-4"
+              }`}
           >
-            {/* Movie Card */}
+            {/* Movie Card Type 1*/}
             {listView &&
               comments
                 .filter((comment) => {
@@ -513,56 +520,58 @@ export default function LogoutButton({ userId }: Props) {
                       <img
                         src={mediaData.image_url}
                         alt=""
-                        className="rounded-sm w-30 h-auto"
+                        className="rounded-sm w-auto h-30 md:h-50"
                       />
                       <div className="flex flex-col pl-3 pt-3 w-full">
                         <div className="flex flex-row place-content-between">
-                          <div className="flex flex-col w-full">
+                          <div className="flex flex-row w-full overflow-auto">
                             <h3
                               onClick={() => handleClick(mediaData)}
-                              className="text-white hover:text-[#C6C6C6] cursor-pointer font-semibold text-lg truncate max-w-85"
+                              className="text-white hover:text-[#C6C6C6] cursor-pointer font-semibold text-sm md:text-lg truncate max-w-40 md:max-w-85"
                             >
                               {mediaData.title}
                             </h3>
 
-                            <div className="flex gap-1 items-center">
-                              <span className="text-[#C6C6C6] font-semibold text-sm">
-                                {mediaData.type}
-                              </span>
-                              <span className="text-[#C6C6C6]">•</span>
-                              <span className="text-[#C6C6C6] font-semibold text-sm">
-                                {new Date(mediaData.release_date).getFullYear()}
-                              </span>
-                              <span className="text-[#C6C6C6]">•</span>
-                              <span className="text-[#C6C6C6] font-semibold text-sm">
-                                {new Date(
-                                  comment.created_at,
-                                ).toLocaleDateString()}
-                              </span>
+
+                            <div className="md:w-25 ml-auto text-end">
+                              {comment.category === "skip" && (
+                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fe647e]">
+                                  Skip
+                                </span>
+                              )}
+                              {comment.category === "timepass" && (
+                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fcb700]">
+                                  Timepass
+                                </span>
+                              )}
+                              {comment.category === "goforit" && (
+                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#00d391]">
+                                  Go for it
+                                </span>
+                              )}
+                              {comment.category === "perfection" && (
+                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#b048ff]">
+                                  Perfection
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <div className="w-25 ml-auto text-end">
-                            {comment.category === "skip" && (
-                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fe647e]">
-                                Skip
-                              </span>
-                            )}
-                            {comment.category === "timepass" && (
-                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fcb700]">
-                                Timepass
-                              </span>
-                            )}
-                            {comment.category === "goforit" && (
-                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#00d391]">
-                                Go for it
-                              </span>
-                            )}
-                            {comment.category === "perfection" && (
-                              <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#b048ff]">
-                                Perfection
-                              </span>
-                            )}
-                          </div>
+                        </div>
+
+                        <div className="flex gap-1 items-center">
+                          <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
+                            {mediaData.type}
+                          </span>
+                          <span className="text-[#C6C6C6]">•</span>
+                          <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
+                            {new Date(mediaData.release_date).getFullYear()}
+                          </span>
+                          <span className="text-[#C6C6C6]">•</span>
+                          <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
+                            {new Date(
+                              comment.created_at,
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
                         <div className="text-[#C6C6C6] mt-2">
                           <span>{comment.content}</span>
@@ -610,7 +619,7 @@ export default function LogoutButton({ userId }: Props) {
                   );
                 })}
 
-            {/* Movie Card */}
+            {/* Movie Card Type 2*/}
             {!listView &&
               comments
                 .filter((comment) => {
@@ -642,7 +651,7 @@ export default function LogoutButton({ userId }: Props) {
                       <img
                         src={mediaData.image_url}
                         alt=""
-                        className="rounded-sm w-30 h-auto"
+                        className="rounded-sm object-cover shrink-0 w-auto h-60 md:h-50"
                       />
                       <div className="flex flex-col items-center w-full">
                         {/* Title container */}
@@ -685,30 +694,31 @@ export default function LogoutButton({ userId }: Props) {
         </div>
 
         {/* Intrested In */}
-        <div className="w-[25%] h-full items-start justify-center flex flex-col gap-3 rounded-lg">
+        <div className="order-1 md:order-2 w-full md:w-[25%] h-full items-start justify-center flex flex-col gap-3 rounded-lg">
           <h2 className="text-white font-semibold text-xl mb-2">
             Intrested In
           </h2>
 
           {/* Movie Card */}
-          {intrests.map((intrest) => (
-            <div
-              key={intrest.id}
-              onClick={() => handleClick(intrest)}
-              className="border border-[#252525] flex rounded-md w-full gap-2 p-2 hover:bg-[#171717] cursor-pointer"
-            >
-              <img
-                src={intrest.image_url}
-                alt=""
-                className="rounded-sm w-10 h-auto"
-              />
-              <div className="w-full flex flex-col overflow-hidden">
-                <h3 className="text-[#E2E2E2] font-semibold text-md truncate">
-                  {intrest.title}
-                </h3>
-                <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                  {intrest.release_date
-                    ? new Date(intrest.release_date).toLocaleDateString(
+          <div className="w-full flex gap-2 md:flex-col overflow-auto">
+            {intrests.map((intrest) => (
+              <div
+                key={intrest.id}
+                onClick={() => handleClick(intrest)}
+                className="md:border border-[#252525] bg-[#171717] flex rounded-md w-100 md:w-full gap-2 p-2 md:hover:bg-[#171717] cursor-pointer"
+              >
+                <img
+                  src={intrest.image_url}
+                  alt=""
+                  className="rounded-sm w-10 h-14 object-cover shrink-0"
+                />
+                <div className="w-full flex flex-col overflow-hidden">
+                  <h3 className="text-[#E2E2E2] font-semibold text-md truncate w-50">
+                    {intrest.title}
+                  </h3>
+                  <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
+                    {intrest.release_date
+                      ? new Date(intrest.release_date).toLocaleDateString(
                         "en-US",
                         {
                           day: "2-digit",
@@ -716,14 +726,15 @@ export default function LogoutButton({ userId }: Props) {
                           year: "numeric",
                         },
                       )
-                    : "—"}
-                </h3>
-                <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
-                  {intrest.type.toUpperCase()}
-                </h3>
+                      : "—"}
+                  </h3>
+                  <h3 className="text-[#C6C6C6] font-semibold text-[10px]">
+                    {intrest.type.toUpperCase()}
+                  </h3>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </>

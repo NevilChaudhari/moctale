@@ -437,145 +437,153 @@ export default function ContentClient({ id, userId }: Props) {
           </div>
         </div>
       )}
-      <div className="w-full h-[90vh] relative">
-        {(content?.trailer_url && videoId) || content?.image_url ? (
-          <img
-            src={
-              content?.trailer_url && videoId
-                ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-                : content?.image_url
-            }
-            alt="poster"
-            className="object-cover w-full h-full opacity-80"
-          />
-        ) : null}
 
-        <div
-          onClick={() => {
-            setModal1Open(true);
-            scrollToTop();
-          }}
-          className="z-10 hover:bg-black/90 top-1/3 left-1/2 w-15 h-15 bg-black/70 rounded-full flex items-center justify-center shadow-lg absolute cursor-pointer"
-        >
-          {/* Play triangle as SVG */}
-          <svg
-            className="w-10 h-10 text-white"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </div>
+      {/* BG-Poster */}
+      <div className="md:w-full md:h-[90vh] relative">
+        <div className="relative w-full h-full">
+          {(content?.trailer_url && videoId) || content?.image_url ? (
+            <img
+              src={
+                content?.trailer_url && videoId
+                  ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+                  : content?.image_url
+              }
+              alt="poster"
+              className="object-cover w-full h-full opacity-80"
+            />
+          ) : null}
 
-        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,1)_10%,rgba(237,221,83,0)_70%)]"></div>
-
-        <div className="w-full absolute bottom-0 px-30 flex mb-10">
+          {/* Play Button */}
           <div
             onClick={() => {
-              setModal2Open(true);
+              setModal1Open(true);
               scrollToTop();
             }}
-            className="relative rounded-lg h-70 w-50 overflow-hidden cursor-pointer group"
+            className="z-10 hover:bg-black/90 top-1/3 left-1/2 w-15 h-15 bg-black/70 rounded-full md:flex items-center justify-center shadow-lg absolute cursor-pointer"
           >
-            <div className="z-1 absolute group-hover:bg-black/50 w-full h-full"></div>
-            <img
-              src={content?.image_url}
-              alt="poster"
-              className="object-cover group-hover:scale-110 transition-transform duration-200"
-            />
+            {/* Play triangle as SVG */}
+            <svg
+              className="w-10 h-10 text-white"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </div>
 
-          <div className="flex flex-col ml-10 justify-end">
-            <div className="flex text-[#ABABAB] text-sm">
-              <span>{content?.type}</span>
-              <span>&nbsp;•&nbsp;</span>
-              <span>
-                {content?.release_date
-                  ? new Date(content.release_date).getFullYear()
-                  : "—"}
-              </span>
+          {/* Gradient Overlay */}
+          <div className="absolute w-full h-auto inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,1)_10%,rgba(237,221,83,0)_70%)]"></div>
+
+          {/* Main Poster and Data */}
+          <div className="w-full absolute bottom-0 md:px-30 flex md:flex-row flex-col mb-10">
+            <div
+              onClick={() => {
+                setModal2Open(true);
+                scrollToTop();
+              }}
+              className="relative rounded-lg h-70 w-50 overflow-hidden cursor-pointer group"
+            >
+              <div className="z-1 absolute group-hover:bg-black/50 w-full h-full"></div>
+              <img
+                src={content?.image_url}
+                alt="poster"
+                className="object-cover group-hover:scale-110 transition-transform duration-200"
+              />
             </div>
-            <span className="text-3xl font-semibold">{content?.title}</span>
-            <div className="flex text-[#ABABAB] text-sm mt-5 gap-10">
-              <div className="flex flex-col">
-                <span>Directed By</span>
-                <button className="text-white font-bold">
-                  {content?.director}
-                </button>
-              </div>
 
-              <div className="flex flex-col">
-                <span>Country</span>
-                <button className="text-white font-bold">
-                  {content?.country}
-                </button>
+            <div className="flex flex-col ml-10 justify-end">
+              <div className="flex text-[#ABABAB] text-sm">
+                <span>{content?.type}</span>
+                <span>&nbsp;•&nbsp;</span>
+                <span>
+                  {content?.release_date
+                    ? new Date(content.release_date).getFullYear()
+                    : "—"}
+                </span>
               </div>
-
-              <div className="flex flex-col">
-                <span>language</span>
-                <button className="text-white font-bold">
-                  {content?.languages}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="justify-end ml-auto flex flex-col gap-3">
-            {/* mark as intrested */}
-            {current_status == "upcoming" && (
-              <button
-                onClick={handleIntrested}
-                className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer"
-              >
-                <i
-                  className={`bi ${!isIntrested ? "bi-fire" : "bi-check-lg"} mr-2`}
-                ></i>
-                {!isIntrested ? "Mark As Intrested" : "Intrested"}
-                <div className="absolute inset-0 pointer-events-none">
-                  {dots.map((dot, idx) => (
-                    <i
-                      key={idx}
-                      className="bi bi-dot absolute animate-slideTop"
-                      style={{
-                        left: dot.left,
-                        bottom: dot.bottom,
-                        width: dot.size,
-                        height: dot.size,
-                        animationDelay: dot.delay,
-                      }}
-                    />
-                  ))}
+              <span className="text-3xl font-semibold">{content?.title}</span>
+              <div className="flex text-[#ABABAB] text-sm mt-5 gap-10">
+                <div className="flex flex-col">
+                  <span>Directed By</span>
+                  <button className="text-white font-bold">
+                    {content?.director}
+                  </button>
                 </div>
-              </button>
-            )}
 
-            {/* mark as watched */}
-            {current_status == "released" && (
-              <button className="overflow-hidden relative rounded-full bg-purple-600 py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
-                <i className="bi bi-eye mr-2"></i>
-                Mark As Watched
-                <div className="absolute inset-0 pointer-events-none"></div>
-              </button>
-            )}
+                <div className="flex flex-col">
+                  <span>Country</span>
+                  <button className="text-white font-bold">
+                    {content?.country}
+                  </button>
+                </div>
 
-            {/* Watched */}
-            {current_status == "watched" && (
-              <button className="overflow-hidden relative rounded-full bg-[#00b83d] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
-                <i className="fa-solid fa-check mr-2"></i>
-                Watched
-                <div className="absolute inset-0 pointer-events-none"></div>
+                <div className="flex flex-col">
+                  <span>language</span>
+                  <button className="text-white font-bold">
+                    {content?.languages}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="justify-end ml-auto flex flex-col gap-3">
+              {/* mark as intrested */}
+              {current_status == "upcoming" && (
+                <button
+                  onClick={handleIntrested}
+                  className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer"
+                >
+                  <i
+                    className={`bi ${!isIntrested ? "bi-fire" : "bi-check-lg"} mr-2`}
+                  ></i>
+                  {!isIntrested ? "Mark As Intrested" : "Intrested"}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {dots.map((dot, idx) => (
+                      <i
+                        key={idx}
+                        className="bi bi-dot absolute animate-slideTop"
+                        style={{
+                          left: dot.left,
+                          bottom: dot.bottom,
+                          width: dot.size,
+                          height: dot.size,
+                          animationDelay: dot.delay,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </button>
+              )}
+
+              {/* mark as watched */}
+              {current_status == "released" && (
+                <button className="overflow-hidden relative rounded-full bg-purple-600 py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
+                  <i className="bi bi-eye mr-2"></i>
+                  Mark As Watched
+                  <div className="absolute inset-0 pointer-events-none"></div>
+                </button>
+              )}
+
+              {/* Watched */}
+              {current_status == "watched" && (
+                <button className="overflow-hidden relative rounded-full bg-[#00b83d] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
+                  <i className="fa-solid fa-check mr-2"></i>
+                  Watched
+                  <div className="absolute inset-0 pointer-events-none"></div>
+                </button>
+              )}
+              <button className="rounded-full bg-white/10 py-3 px-23 font-semibold text-sm hover:bg-white/20 cursor-pointer">
+                <i className="bi bi-bookmark mr-3"></i>
+                Add to collection
               </button>
-            )}
-            <button className="rounded-full bg-white/10 py-3 px-23 font-semibold text-sm hover:bg-white/20 cursor-pointer">
-              <i className="bi bi-bookmark mr-3"></i>
-              Add to collection
-            </button>
+            </div>
           </div>
         </div>
 
+        {/* Details */}
         <div className="flex gap-5">
-          <div className="ml-30 my-10 w-[75%]">
+          <div className="ml-3 md:ml-30 my-10 w-full md:w-[75%]">
             {/* Overview */}
             <div className="flex flex-col gap-5 border-b border-[#333333] pb-10">
               <span className="text-[#E2E2E2] text-2xl font-medium">
@@ -1070,7 +1078,7 @@ export default function ContentClient({ id, userId }: Props) {
             </div>
           </div>
 
-          <div className="w-[25%] mr-30">
+          <div className="hidden md:block md:w-[25%] mr-30">
             <div className="bg-[#1b1b1b] border border-[#252833] rounded-xl">
               <ChartRadialStacked />
             </div>

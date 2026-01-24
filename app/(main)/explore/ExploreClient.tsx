@@ -8,7 +8,7 @@ interface ExploreClientProps {
 export default function ExploreClient({ media }: ExploreClientProps) {
   const router = useRouter();
   const upcomingMovies = media.filter(
-    (item) => item.current_status === "upcoming"
+    (item) => item.current_status === "upcoming",
   );
   const featuredMovie = upcomingMovies[0];
 
@@ -17,15 +17,15 @@ export default function ExploreClient({ media }: ExploreClientProps) {
   };
 
   return (
-    <div className="px-30 py-10 flex gap-5 h-screen text-white">
+    <div className="lg:px-30 px-5 py-10 flex flex-col lg:flex-row gap-5 h-screen text-white">
       {/* Left Part */}
-      <div className="h-full w-[70%]">
+      <div className="order-2 lg:order-1 h-full w-full lg:w-[70%]">
         <div className="w-full mb-6">
           <span className="text-[#E2E2E2] text-[20px] font-bold">
             Talk Of The Town
           </span>
         </div>
-        <div className="w-full grid grid-cols-5 gap-2">
+        <div className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
           {/* Movie Card */}
           {media.length > 0 ? (
             media.map((item) => (
@@ -54,17 +54,23 @@ export default function ExploreClient({ media }: ExploreClientProps) {
       </div>
 
       {/* Right Part */}
-      <div className="h-full w-[30%]">
+      <div className="order-1 lg:order-2 h-full lg:w-[30%]">
         <div className="w-full mb-6 flex gap-2">
           <i className="bi bi-fire"></i>
           <span className="text-[#E2E2E2] text-[20px] font-bold">
             Talk Of The Town
           </span>
         </div>
-        <div className="w-full flex flex-col gap-2">
+        <div className="w-full flex overflow-auto lg:flex-col gap-3">
           {/* Movie Card */}
           {upcomingMovies.map((item, index) => (
-            <div onClick={()=>{handleCardClick(item)}} key={item.id} className="gap-2 w-full flex border border-[#252525] items-center hover:bg-[#111111] mb-5 p-2 rounded-xl cursor-pointer py-2 px-3">
+            <div
+              onClick={() => {
+                handleCardClick(item);
+              }}
+              key={item.id}
+              className="gap-1 w-full flex border bg-[#171717] lg:bg-transparent border-[#252525] items-center hover:bg-[#111111] mb-5 p-2 rounded-xl cursor-pointer md:py-2 py-1 px-3"
+            >
               <span className="text-[80px] font-black text-transparent bg-clip-text bg-linear-to-b from-[#E2E2E2] to-[#6B6B6B] select-none leading-none">
                 {index + 1}
               </span>
@@ -73,10 +79,10 @@ export default function ExploreClient({ media }: ExploreClientProps) {
                 className="h-auto w-15 rounded-md"
                 src={item.image_url}
               />
-              <div className="ml-5 h-full items-start flex flex-col justify-center gap-1">
-                <span className="font-bold">{item.title}</span>
+              <div className="ml-5 h-full w-100 items-start flex flex-col justify-center gap-1 min-w-0">
+                <span className="truncate w-full font-semibold">{item.title}</span>
                 <div className="flex gap-1">
-                  <span className="font-bold text-[#808080] text-[11px]">
+                  <span className="font-bold truncate w-full text-[#808080] text-[11px]">
                     {item.release_date
                       ? new Date(item.release_date).toLocaleDateString(
                           "en-US",
@@ -84,7 +90,7 @@ export default function ExploreClient({ media }: ExploreClientProps) {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
-                          }
+                          },
                         )
                       : "—"}
                   </span>
