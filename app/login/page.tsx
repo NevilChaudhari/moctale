@@ -16,7 +16,7 @@ export default function Page() {
           <PostersScroller />
         </div>
 
-        <div className="flex-1 flex flex-col items-center overflow-y-auto min-h-0 pt-10">
+        <div className="flex-1 flex flex-col items-center overflow-y-auto min-h-0 px-3 md:px-0 pt-10">
           <Image
             src="/moctale.png"
             alt="logo"

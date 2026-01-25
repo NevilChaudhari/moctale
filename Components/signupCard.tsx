@@ -53,7 +53,7 @@ export default function SignupCard() {
     password.trim() !== "";
 
   return (
-    <div className="bg-white rounded-lg flex flex-col justify-center items-center w-[48%] h-auto p-5 md:max-w-90">
+    <div className="bg-white rounded-lg flex flex-col justify-center items-center w-full md:w-[48%] h-auto p-5 md:max-w-90">
       <label className="text-black font-semibold text-2xl mb-3.5">
         Sign Up
       </label>
