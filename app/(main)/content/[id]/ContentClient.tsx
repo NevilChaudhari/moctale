@@ -423,7 +423,7 @@ export default function ContentClient({ id, userId }: Props) {
             }}
             className="absolute top-5 right-5 text-3xl cursor-pointer bi bi-x-lg"
           ></i>
-          <div className="w-[60%] h-[80%]">
+          <div className="w-[90%] h-[40%] rounded-2xl overflow-hidden md:w-[60%] md:h-[80%]">
             <iframe
               width="560"
               height="315"
