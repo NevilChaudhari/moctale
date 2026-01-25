@@ -396,15 +396,15 @@ export default function ContentClient({ id, userId }: Props) {
   return (
     <div className="relative text-white bg-black">
       {modal2Open && (
-        <div className="z-11 absolute w-full h-[90vh] bg-black/50 object-contain flex justify-center items-center">
+        <div className="z-11 absolute w-full h-[85vh] bg-black/80 object-contain flex justify-center items-center">
           <i
             onClick={() => {
               setModal2Open(false);
               scrollToTop();
             }}
-            className="absolute top-5 right-5 text-3xl cursor-pointer bi bi-x-lg"
+            className="absolute top-2 right-2 text-3xl cursor-pointer bi bi-x-lg"
           ></i>
-          <div className="h-[99%] w-auto">
+          <div className="h-[85%] md:h-[99%] w-auto rounded-2xl overflow-hidden">
             <img
               src={content?.image_url}
               alt=""
@@ -439,9 +439,30 @@ export default function ContentClient({ id, userId }: Props) {
       )}
 
       {/* BG-Poster */}
-      <div className="md:w-full md:h-[90vh] relative">
-        <div className="relative w-full h-full">
-          {(content?.trailer_url && videoId) || content?.image_url ? (
+      <div className="h-full w-full">
+
+        {/* Background Image/Video */}
+        <div className="relative w-full h-110 md:h-auto md:mb-10">
+          <div className="relative">
+            {/* Play Button */}
+            <div
+              onClick={() => {
+                setModal1Open(true);
+                scrollToTop();
+              }}
+              className="absolute top-1/3 left-1/2 w-16 h-16 bg-black/70 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:bg-black/90 z-10"
+            >
+              {/* Play triangle as SVG */}
+              <svg
+                className="w-10 h-10 text-white"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+
+            </div>
             <img
               src={
                 content?.trailer_url && videoId
@@ -449,90 +470,74 @@ export default function ContentClient({ id, userId }: Props) {
                   : content?.image_url
               }
               alt="poster"
-              className="object-cover w-full h-full opacity-80"
+              className="object-contain md:object-cover w-full h-full md:h-[80vh] object-top opacity-80"
             />
-          ) : null}
-
-          {/* Play Button */}
-          <div
-            onClick={() => {
-              setModal1Open(true);
-              scrollToTop();
-            }}
-            className="z-10 hover:bg-black/90 top-1/3 left-1/2 w-15 h-15 bg-black/70 rounded-full md:flex items-center justify-center shadow-lg absolute cursor-pointer"
-          >
-            {/* Play triangle as SVG */}
-            <svg
-              className="w-10 h-10 text-white"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M8 5v14l11-7z" />
-            </svg>
+            <div className="absolute w-full h-auto inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,1)_10%,rgba(237,221,83,0)_70%)]"></div>
           </div>
 
-          {/* Gradient Overlay */}
-          <div className="absolute w-full h-auto inset-0 bg-[linear-gradient(0deg,rgba(0,0,0,1)_10%,rgba(237,221,83,0)_70%)]"></div>
+          {/* Main Poster and Data*/}
+          <div className="absolute bottom-0 w-full flex md:flex-row flex-col h-auto px-4 md:px-30">
+            <div className="flex">
+              {/* Main Poster */}
+              <div
+                onClick={() => {
+                  setModal2Open(true);
+                  scrollToTop();
+                }}
+                className="w-[30%] h-40 md:h-auto md:w-auto overflow-hidden rounded-md group">
+                <img
+                  src={content?.image_url}
+                  alt="poster"
+                  className="object-cover md:h-70 md:w-50 h-full w-full group-hover:scale-110 cursor-pointer transition-transform duration-200"
+                />
+              </div>
 
-          {/* Main Poster and Data */}
-          <div className="w-full absolute bottom-0 md:px-30 flex md:flex-row flex-col mb-10">
-            <div
-              onClick={() => {
-                setModal2Open(true);
-                scrollToTop();
-              }}
-              className="relative rounded-lg h-70 w-50 overflow-hidden cursor-pointer group"
-            >
-              <div className="z-1 absolute group-hover:bg-black/50 w-full h-full"></div>
-              <img
-                src={content?.image_url}
-                alt="poster"
-                className="object-cover group-hover:scale-110 transition-transform duration-200"
-              />
+              {/* Data */}
+              <div className="flex flex-col ml-5 md:ml-10 justify-end w-[70%]">
+                <div className="flex text-[#ABABAB] text-xs md:text-sm">
+                  <span>{content?.type}</span>
+                  <span>&nbsp;•&nbsp;</span>
+                  <span>
+                    {content?.release_date
+                      ? new Date(content.release_date).getFullYear()
+                      : "—"}
+                  </span>
+                </div>
+                <span className="text-md md:text-3xl font-semibold">{content?.title}</span>
+                <div className="flex flex-col md:flex-row text-[#ABABAB] text-xs md:text-sm mt-5 md:gap-10 gap-3">
+                  <div className="flex gap-3">
+                    <div className="flex flex-col overflow-hidden max-w-30">
+                      <span>Directed By</span>
+                      <button className="text-white font-bold truncate">
+                        {content?.director}
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col">
+                      <span>Country</span>
+                      <button className="text-white font-bold">
+                        {content?.country}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-start">
+                    <span>language</span>
+                    <button className="text-white font-bold">
+                      {content?.languages}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col ml-10 justify-end">
-              <div className="flex text-[#ABABAB] text-sm">
-                <span>{content?.type}</span>
-                <span>&nbsp;•&nbsp;</span>
-                <span>
-                  {content?.release_date
-                    ? new Date(content.release_date).getFullYear()
-                    : "—"}
-                </span>
-              </div>
-              <span className="text-3xl font-semibold">{content?.title}</span>
-              <div className="flex text-[#ABABAB] text-sm mt-5 gap-10">
-                <div className="flex flex-col">
-                  <span>Directed By</span>
-                  <button className="text-white font-bold">
-                    {content?.director}
-                  </button>
-                </div>
-
-                <div className="flex flex-col">
-                  <span>Country</span>
-                  <button className="text-white font-bold">
-                    {content?.country}
-                  </button>
-                </div>
-
-                <div className="flex flex-col">
-                  <span>language</span>
-                  <button className="text-white font-bold">
-                    {content?.languages}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="justify-end ml-auto flex flex-col gap-3">
+            {/* Buttons */}
+            <div className="justify-end md:ml-auto flex pt-5 flex-col gap-3">
               {/* mark as intrested */}
               {current_status == "upcoming" && (
                 <button
                   onClick={handleIntrested}
-                  className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer"
+                  className="overflow-hidden relative rounded-full bg-linear-to-r from-[#B3261E] to-[#FF6233] py-2 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer"
                 >
                   <i
                     className={`bi ${!isIntrested ? "bi-fire" : "bi-check-lg"} mr-2`}
@@ -558,7 +563,7 @@ export default function ContentClient({ id, userId }: Props) {
 
               {/* mark as watched */}
               {current_status == "released" && (
-                <button className="overflow-hidden relative rounded-full bg-purple-600 py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
+                <button className="overflow-hidden relative rounded-full bg-purple-600 py-2 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
                   <i className="bi bi-eye mr-2"></i>
                   Mark As Watched
                   <div className="absolute inset-0 pointer-events-none"></div>
@@ -567,13 +572,13 @@ export default function ContentClient({ id, userId }: Props) {
 
               {/* Watched */}
               {current_status == "watched" && (
-                <button className="overflow-hidden relative rounded-full bg-[#00b83d] py-3 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
+                <button className="overflow-hidden relative rounded-full bg-[#00b83d] py-2 px-23 font-semibold text-sm hover:opacity-90 cursor-pointer">
                   <i className="fa-solid fa-check mr-2"></i>
                   Watched
                   <div className="absolute inset-0 pointer-events-none"></div>
                 </button>
               )}
-              <button className="rounded-full bg-white/10 py-3 px-23 font-semibold text-sm hover:bg-white/20 cursor-pointer">
+              <button className="rounded-full bg-[#474747] md:bg-white/10 w-full py-2 px-23 font-semibold text-sm hover:bg-white/20 cursor-pointer">
                 <i className="bi bi-bookmark mr-3"></i>
                 Add to collection
               </button>
@@ -581,15 +586,17 @@ export default function ContentClient({ id, userId }: Props) {
           </div>
         </div>
 
+
+
         {/* Details */}
         <div className="flex gap-5">
-          <div className="ml-3 md:ml-30 my-10 w-full md:w-[75%]">
+          <div className="ml-3 mr-3 md:mr-0 md:ml-30 my-10 w-full md:w-[75%]">
             {/* Overview */}
             <div className="flex flex-col gap-5 border-b border-[#333333] pb-10">
-              <span className="text-[#E2E2E2] text-2xl font-medium">
+              <span className="text-[#E2E2E2] text-xl md:text-2xl font-medium">
                 Overview
               </span>
-              <span className="text-[#B3B3B3] text-md font-medium">
+              <span className="text-[#B3B3B3] text-sm md:text-md font-medium">
                 {content?.description}
               </span>
               <div className="flex gap-3">
@@ -597,7 +604,7 @@ export default function ContentClient({ id, userId }: Props) {
                   tags.map((tag: string, index: number) => (
                     <div
                       key={index}
-                      className="bg-[#171717] hover:bg-[#1F1F1F] px-3 py-2 rounded-xl font-semibold text-sm"
+                      className="bg-[#171717] hover:bg-[#1F1F1F] px-3 py-2 md:rounded-xl rounded-md font-semibold md:text-sm text-xs"
                     >
                       {tag}
                     </div>
@@ -608,7 +615,7 @@ export default function ContentClient({ id, userId }: Props) {
             {/* Cast */}
             <div className="flex flex-col py-15 border-b border-[#333333]">
               <div>
-                <span className="text-[#E2E2E2] text-2xl font-medium">
+                <span className="text-[#E2E2E2] text-xl md:text-2xl font-medium">
                   Cast
                 </span>
                 <div className="flex mt-5 gap-5 overflow-x-auto">
@@ -619,16 +626,16 @@ export default function ContentClient({ id, userId }: Props) {
                         key={index}
                         className="flex flex-col items-center gap-1"
                       >
-                        <div className="rounded-full overflow-hidden w-30 h-30">
+                        <div className="rounded-full overflow-hidden w-25 h-25 md:w-30 md:h-30">
                           <img
                             src="https://i.ibb.co/7tKbDGFX/default-profile.jpg"
                             alt="Actor Image"
                             className="object-cover w-full h-full"
                           />
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-white">{actor}</span>
-                          <span className="text-[#ABABAB] text-xs"></span>
+                        <div className="flex flex-col items-center">
+                          <span className="text-xs md:text-base text-white">{actor}</span>
+                          <span className="text-[#ABABAB] text-xs">actor</span>
                         </div>
                       </div>
                     ))}
@@ -639,7 +646,7 @@ export default function ContentClient({ id, userId }: Props) {
             {/* Crew */}
             <div className="flex flex-col py-15 border-b border-[#333333]">
               <div>
-                <span className="text-[#E2E2E2] text-2xl font-medium">
+                <span className="text-[#E2E2E2] text-xl md:text-2xl font-medium">
                   Crew
                 </span>
                 <div className="flex mt-5 gap-5 overflow-x-auto">
@@ -650,7 +657,7 @@ export default function ContentClient({ id, userId }: Props) {
                         key={index}
                         className="flex flex-col items-center gap-1"
                       >
-                        <div className="rounded-full overflow-hidden w-30 h-30">
+                        <div className="rounded-full overflow-hidden w-25 h-25 md:w-30 md:h-30">
                           <img
                             src="https://i.ibb.co/7tKbDGFX/default-profile.jpg"
                             alt="Actor Image"
@@ -658,7 +665,7 @@ export default function ContentClient({ id, userId }: Props) {
                           />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-white">{crewMember}</span>
+                          <span className="text-xs md:text-base text-white">{crewMember}</span>
                           <span className="text-[#ABABAB] text-xs"></span>
                         </div>
                       </div>
@@ -670,7 +677,7 @@ export default function ContentClient({ id, userId }: Props) {
             {/* Production House */}
             <div className="flex flex-col py-15 border-b border-[#333333]">
               <div>
-                <span className="text-[#E2E2E2] text-2xl font-medium">
+                <span className="text-[#E2E2E2] text-xl md:text-2xl font-medium">
                   Production House
                 </span>
                 <div className="flex mt-5 gap-5">
@@ -679,7 +686,7 @@ export default function ContentClient({ id, userId }: Props) {
                     studios.map((studio: string, index: number) => (
                       <div
                         key={index}
-                        className="border border-[#252833] px-3 py-2 rounded-md hover:bg-[#252525] cursor-pointer"
+                        className="border text-sm md:text-base border-[#252833] px-3 py-2 rounded-md hover:bg-[#252525] cursor-pointer"
                       >
                         {studio}
                       </div>
@@ -691,54 +698,56 @@ export default function ContentClient({ id, userId }: Props) {
             {/* Reviews */}
             <div className="flex flex-col py-15">
               <div>
-                <span className="text-[#E2E2E2] text-2xl font-medium">
+                <span className="text-[#E2E2E2] text-xl md:text-2xl font-medium">
                   Reviews
                 </span>
                 <div className="flex mt-5 gap-5">
                   <div className="flex flex-col gap-5 w-full">
                     {/* Send Review */}
                     {!hasUserCommented && (
-                      <div className="flex flex-col bg-[#151515] items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]">
+                      <div className="flex flex-col bg-[#151515] items-center px-3 md:px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]">
                         {/* Header */}
-                        <div className="flex items-center w-full">
-                          {/* Profile Image */}
-                          <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
-                            <img
-                              src={user?.profile_url}
-                              alt=""
-                              className="object-contain"
-                            />
-                          </div>
+                        <div className="flex flex-col items-center md:flex-row gap-5 md:gap-0 w-full">
+                          <div className="flex items-center justify-start w-full">
+                            {/* Profile Image */}
+                            <div className="rounded-full flex justify-center items-center md:w-15 md:h-15 w-12 h-12 overflow-hidden">
+                              <img
+                                src={user?.profile_url}
+                                alt=""
+                                className="object-contain"
+                              />
+                            </div>
 
-                          {/* Username */}
-                          <div className="ml-3">
-                            <span className="text-md">@</span>
-                            <span className="text-md">{user?.username}</span>
+                            {/* Username */}
+                            <div className="ml-3">
+                              <span className="text-md">@</span>
+                              <span className="text-md">{user?.username}</span>
+                            </div>
                           </div>
 
                           {/* Categories */}
-                          <div className="ml-auto bg-[#1F1F1F] border-[#474747] border h-12 rounded-full flex items-center px-1 py-1 gap-1">
+                          <div className="md:ml-auto bg-[#1F1F1F] border-[#474747] border md:h-12 h-10 rounded-full flex items-center px-1 py-1 gap-1">
                             <button
                               onClick={() => setSelectedCategory("skip")}
-                              className={`${selectedCategory == "skip" ? "bg-[#fe647e] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                              className={`truncate ${selectedCategory == "skip" ? "bg-[#fe647e] text-black" : "bg-none text-white"} h-full px-4 py-0 md:px-6 rounded-full cursor-pointer text-xs md:text-sm `}
                             >
                               Skip
                             </button>
                             <button
                               onClick={() => setSelectedCategory("timepass")}
-                              className={`${selectedCategory == "timepass" ? "bg-[#fcb700] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                              className={`truncate ${selectedCategory == "timepass" ? "bg-[#fcb700] text-black" : "bg-none text-white"} h-full px-4 py-0 md:px-6 rounded-full cursor-pointer text-xs md:text-sm `}
                             >
                               Timepass
                             </button>
                             <button
                               onClick={() => setSelectedCategory("goforit")}
-                              className={`${selectedCategory == "goforit" ? "bg-[#00d391] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                              className={`truncate ${selectedCategory == "goforit" ? "bg-[#00d391] text-black" : "bg-none text-white"} h-full px-4 py-0 md:px-6 rounded-full cursor-pointer text-xs md:text-sm `}
                             >
                               Go for it
                             </button>
                             <button
                               onClick={() => setSelectedCategory("perfection")}
-                              className={`${selectedCategory == "perfection" ? "bg-[#b048ff] text-black" : "bg-none text-white"} h-full px-6 rounded-full cursor-pointer text-sm `}
+                              className={`truncate ${selectedCategory == "perfection" ? "bg-[#b048ff] text-black" : "bg-none text-white"} h-full px-4 py-0 md:px-6 rounded-full cursor-pointer text-xs md:text-sm `}
                             >
                               Perfection
                             </button>
@@ -755,7 +764,7 @@ export default function ContentClient({ id, userId }: Props) {
                             maxLength={1000}
                             rows={3}
                             placeholder="Write your review here..."
-                            className="w-full resize-none overflow-hidden focus:outline-0 text-white"
+                            className="w-full text-sm md:text-base resize-none overflow-hidden focus:outline-0 text-white"
                           />
                           <div className="mt-1 text-bottom text-xs text-gray-500 w-15">
                             {count} / 1000
