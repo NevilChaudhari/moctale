@@ -356,7 +356,7 @@ export default function LogoutButton({ userId }: Props) {
                   className={`${categories === "All"
                     ? "bg-[#474747] text-white"
                     : "text-[#C6C6C6]"
-                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   All
                 </button>
@@ -366,7 +366,7 @@ export default function LogoutButton({ userId }: Props) {
                   className={`${categories === "skip"
                     ? "bg-[#fe647e] text-black"
                     : "text-[#C6C6C6]"
-                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Skip
                 </button>
@@ -376,7 +376,7 @@ export default function LogoutButton({ userId }: Props) {
                   className={`${categories === "timepass"
                     ? "bg-[#fcb700] text-black"
                     : "text-[#C6C6C6]"
-                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Timepass
                 </button>
@@ -386,7 +386,7 @@ export default function LogoutButton({ userId }: Props) {
                   className={`${categories === "goforit"
                     ? "bg-[#00d391] text-black"
                     : "text-[#C6C6C6]"
-                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Go For It
                 </button>
@@ -396,7 +396,7 @@ export default function LogoutButton({ userId }: Props) {
                   className={`${categories === "perfection"
                     ? "bg-[#b048ff] text-black"
                     : "text-[#C6C6C6]"
-                    } h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                 >
                   Perfection
                 </button>

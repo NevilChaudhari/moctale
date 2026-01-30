@@ -1,16 +1,13 @@
-import { NextResponse } from "next/server";
-import { db } from "@/config/db";
+import {NextResponse} from "next/server";
+import {db} from "@/config/db";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { id } = body;
+    const {id} = body;
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Post id is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({error: "Post id is required"}, {status: 400});
     }
 
     const [rows] = await db.execute(
@@ -26,8 +23,8 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { error: "Failed to fetch comments" },
-      { status: 500 },
+      {error: "Failed to fetch comments"},
+      {status: 500},
     );
   }
 }

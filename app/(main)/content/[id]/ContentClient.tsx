@@ -1,6 +1,8 @@
 "use client";
 
 import { ChartRadialStacked } from "@/Components/chart";
+import DetailedReviews from "@/Components/DetailedReviews";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
 interface Props {
@@ -61,6 +63,8 @@ export default function ContentClient({ id, userId }: Props) {
   const [platforms, setPlatforms] = useState<any>(null);
   const [current_status, setCurrent_status] = useState<any>(null);
   const [showOptions, setShowOptions] = useState(false);
+  const [showReReplies, setShowReReplies] = useState(false);
+  const [selfReReplies, setSelfReReplies] = useState(false);
 
   const handleIntrested = async () => {
     try {
@@ -392,6 +396,27 @@ export default function ContentClient({ id, userId }: Props) {
       document.body.style.overflow = "auto";
     };
   }, [modal2Open, modal1Open]);
+
+  useEffect(() => {
+    if (showReReplies) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showReReplies]);
+
+  const openReview = () => {
+    setShowReReplies(!showReReplies);
+  }
+
+  const visitProfile = async ({ userId }: { userId: string }) => {
+    router.push(`/user/${userId}/`);
+  };
+  const router = useRouter();
 
   return (
     <div className="relative text-white bg-black">
@@ -887,10 +912,16 @@ export default function ContentClient({ id, userId }: Props) {
                             key={comment.id}
                             className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
                           >
+                            {selfReReplies && (
+                              <div className="fixed z-10 items-center flex justify-center inset-0 bg-black/10 backdrop-blur-sm">
+                                <DetailedReviews comment={comment} user={commentUser} userId={userId} />
+                                <div className="absolute top-4 right-4 cursor-pointer text-white text-xl" onClick={() => setSelfReReplies(false)}><i className="bi bi-x-lg"></i></div>
+                              </div>
+                            )}
                             {/* Header */}
                             <div className="flex items-center w-full">
                               {/* Profile Image */}
-                              <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                              <div className="cursor-pointer rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
                                 <img
                                   src={
                                     commentUser?.profile_url ??
@@ -951,7 +982,7 @@ export default function ContentClient({ id, userId }: Props) {
                                   {comment.likes}
                                 </span>
                               </div>
-                              <div className="flex gap-2 cursor-pointer">
+                              <div className="flex gap-2 cursor-pointer" onClick={() => setSelfReReplies(true)}>
                                 <i className="bi bi-chat"></i>
                                 <span className=" hover:text-[#B3B3B3]">
                                   {comment.replies}
@@ -1003,10 +1034,19 @@ export default function ContentClient({ id, userId }: Props) {
                             key={comment.id}
                             className={`${comment.user_id == userId ? "bg-[#151515]" : ""} flex flex-col items-center px-4 py-3 w-full h-full rounded-lg border-b border-[#333333]`}
                           >
+                            {showReReplies && (
+                              <div className="fixed z-10 items-center flex justify-center inset-0 bg-black/10 backdrop-blur-sm">
+                                <DetailedReviews comment={comment} user={commentUser} userId={userId} />
+                                <div className="absolute top-4 right-4 cursor-pointer text-white text-xl" onClick={() => setShowReReplies(false)}><i className="bi bi-x-lg"></i></div>
+                              </div>
+                            )}
                             {/* Header */}
                             <div className="flex items-center w-full">
                               {/* Profile Image */}
-                              <div className="rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                              <div
+                                onClick={() => visitProfile({ userId: String(commentUser?.user_id) })}
+                                className="relative cursor-pointer rounded-full flex justify-center items-center w-15 h-15 overflow-hidden">
+                                <div className="hover:bg-black/40 w-full h-full absolute" />
                                 <img
                                   src={
                                     commentUser?.profile_url ??
@@ -1067,7 +1107,9 @@ export default function ContentClient({ id, userId }: Props) {
                                   {comment.likes}
                                 </span>
                               </div>
-                              <div className="flex gap-2 cursor-pointer">
+                              <div
+                                onClick={openReview}
+                                className="flex gap-2 cursor-pointer">
                                 <i className="bi bi-chat"></i>
                                 <span className=" hover:text-[#B3B3B3]">
                                   {comment.replies}

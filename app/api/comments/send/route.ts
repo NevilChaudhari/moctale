@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server";
-import { db } from "@/config/db";
+import {NextResponse} from "next/server";
+import {db} from "@/config/db";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { user_id, post_id, parent_id, content, category } = body;
+    const {user_id, post_id, parent_id, content, category} = body;
 
     if (!user_id || !post_id || !content) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
+        {error: "Missing required fields"},
+        {status: 400},
       );
     }
 
@@ -21,12 +21,12 @@ export async function POST(req: Request) {
       values,
     );
 
-    return NextResponse.json({ success: true }, { status: 201 });
+    return NextResponse.json({success: true}, {status: 201});
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { error: "Failed to insert comment" },
-      { status: 500 },
+      {error: "Failed to insert comment"},
+      {status: 500},
     );
   }
 }

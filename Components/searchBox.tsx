@@ -16,7 +16,7 @@ interface Cast {
   profile_path: string | null;
 }
 interface User {
-  id: number;
+  user_id: number;
   name: string;
   username: string;
   profile_url: string | null;
@@ -76,6 +76,10 @@ export default function SearchBox() {
   const handleCardClick = (item: any) => {
     console.log(item.id);
     router.push(`/content/${item.id}`);
+  };
+
+  const visitProfile = async ({userId}: {userId: string}) => {
+    router.push(`/user/${userId}/`);
   };
 
   return (
@@ -247,7 +251,8 @@ export default function SearchBox() {
               {/* Movie Card */}
               {users.map((item) => (
                 <div
-                  key={item.id || item.username}
+                  onClick={() =>visitProfile({userId: item.user_id.toString()})}
+                  key={item.user_id || item.username}
                   className=" bg-[#171717] hover:bg-[#1F1F1F] md:justify-center items-center cursor-pointer rounded-lg p-3 flex md:flex-col gap-3"
                 >
                   <div className="w-15 h-15 md:w-30 md:h-30 flex justify-center items-center rounded-full overflow-hidden">
