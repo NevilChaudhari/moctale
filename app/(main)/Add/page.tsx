@@ -21,7 +21,100 @@ export default function Home() {
     trailer_url: "",
   });
 
+  const [clubData, setClubData] = useState({
+    club_name: "",
+    club_banner: "",
+    club_icon: "",
+    club_desc: "",
+    club_rules: ""
+  });
+
   const [canSubmit, setCanSubmit] = useState(false);
+  const [tab, setTab] = useState(1);
+
+  const handleClubChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    setClubData({
+      ...clubData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleClubSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!clubData.club_banner || !clubData.club_icon) {
+      alert("Please upload banner and icon");
+      return;
+    }
+
+    const rulesArray = clubData.club_rules
+      .split("\n")
+      .map(rule => rule.trim())
+      .filter(Boolean);
+
+    const payload = {
+      ...clubData,
+      club_rules: JSON.stringify(rulesArray)
+    };
+
+    const res = await fetch("/api/clubs/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert("Failed to create club");
+      return;
+    }
+
+    alert("Club created successfully");
+  };
+
+  const handleClubImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "club_banner" | "club_icon"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+
+      const imgData = new FormData();
+      imgData.append("image", base64);
+
+      const res = await fetch(
+        "https://api.imgbb.com/1/upload?key=712e9653c1453f9d5da0b5893fe3ec25",
+        {
+          method: "POST",
+          body: imgData
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert("Image upload failed");
+        return;
+      }
+
+      setClubData((prev) => ({
+        ...prev,
+        [field]: data.data.url
+      }));
+    };
+
+    reader.readAsDataURL(file);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -60,8 +153,12 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
-      <div className="w-full max-w-4xl bg-zinc-900 rounded-2xl shadow-xl p-10 border border-zinc-800 text-zinc-100">
+    <main className="min-h-screen bg-zinc-950 flex flex-col items-center justify-start p-6">
+      <div className="w-full justify-center items-center mb-8 flex space-x-6 text-zinc-400">
+        <button className={`${tab === 1 ? "text-white bg-[#50a2ff]" : "hover:text-white bg-[#18181b]"} cursor-pointer rounded w-50 h-10`} onClick={() => setTab(1)}>Moves/Series</button>
+        <button className={`${tab === 2 ? "text-white bg-[#50a2ff]" : "hover:text-white bg-[#18181b]"} cursor-pointer rounded w-50 h-10`} onClick={() => setTab(2)}>Club</button>
+      </div>
+      {tab === 1 && (<div className="w-full max-w-4xl bg-zinc-900 rounded-2xl shadow-xl p-10 border border-zinc-800 text-zinc-100">
         <h1 className="text-4xl font-bold mb-8 text-center text-blue-400">
           Add Movie / Series
         </h1>
@@ -373,7 +470,100 @@ export default function Home() {
             Submit
           </button>
         </form>
-      </div>
+      </div>)}
+
+      {tab === 2 && (
+        <div className="w-full max-w-3xl bg-zinc-900 rounded-2xl shadow-xl p-8 border border-zinc-800 text-zinc-100">
+          <h1 className="text-3xl font-bold mb-6 text-center text-blue-400">
+            Create Club
+          </h1>
+
+          <form onSubmit={handleClubSubmit} className="space-y-6">
+
+            {/* Club Name */}
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">
+                Club Name
+              </label>
+              <input
+                type="text"
+                name="club_name"
+                value={clubData.club_name}
+                onChange={handleClubChange}
+                required
+                className="w-full rounded-md bg-zinc-800 border border-zinc-700 px-4 py-2 text-zinc-100 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Club Banner URL */}
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">
+                Club Banner
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleClubImageUpload(e, "club_banner")}
+                className="w-full rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2"
+              />
+
+            </div>
+
+            {/* Club Icon URL */}
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">
+                Club Icon
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleClubImageUpload(e, "club_icon")}
+                className="w-full rounded-md bg-zinc-800 border border-zinc-700 px-3 py-2"
+              />
+
+            </div>
+
+            {/* Club Description */}
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">
+                Club Description
+              </label>
+              <textarea
+                name="club_desc"
+                value={clubData.club_desc}
+                onChange={handleClubChange}
+                rows={4}
+                className="w-full rounded-md bg-zinc-800 border border-zinc-700 px-4 py-2 text-zinc-100 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Club Rules */}
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-1">
+                Club Rules
+              </label>
+              <textarea
+                name="club_rules"
+                value={clubData.club_rules}
+                onChange={handleClubChange}
+                rows={4}
+                placeholder="1. Be respectful\n2. No spam\n3. Stay on topic"
+                className="w-full rounded-md bg-zinc-800 border border-zinc-700 px-4 py-2 text-zinc-100 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition"
+            >
+              Create Club
+            </button>
+
+          </form>
+        </div>
+
+      )}
     </main>
   );
 }

@@ -47,6 +47,13 @@ interface Users {
   intrestedIn: string | null;
 }
 
+interface Likes {
+  id: number;
+  userId: number;
+  postId: number;
+  tableName: string;
+}
+
 const scrollToTop = () => {
   window.scrollTo({
     top: 0,
@@ -65,6 +72,71 @@ export default function ContentClient({ id, userId }: Props) {
   const [showOptions, setShowOptions] = useState(false);
   const [showReReplies, setShowReReplies] = useState(false);
   const [selfReReplies, setSelfReReplies] = useState(false);
+
+  const handleLike = async (post: any) => {
+    if (!post?.id) return;
+
+    try {
+      const res = await fetch("/api/likes/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          table: "Posts",
+          postId: post.id,
+          userLiked: false,
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Likes Updated:", data.message);
+
+      fetchLikes();
+    } catch (err) {
+      console.error("Failed to like post", err);
+    }
+  };
+
+  const handleUnlike = async (post: any) => {
+    if (!post?.id) return;
+    try {
+      const res = await fetch("/api/likes/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          table: "posts",
+          postId: post.id,
+          userLiked: true,
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Likes Updated:", data.message);
+
+      fetchLikes();
+    } catch (err) {
+      console.error("Failed to unlike post", err);
+    }
+  };
+
+  const [likes, setLikes] = useState<Likes[]>([]);
+  const fetchLikes = async () => {
+    try {
+      const res = await fetch("/api/likes/fetch/", {
+        method: "POST",
+        body: JSON.stringify({ table_name: "Posts" }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      setLikes(data.data ?? null);
+    } catch (err) {
+      console.error("Failed to fetch likes:", err);
+    }
+  };
+  useEffect(() => {
+    fetchLikes();
+  }, []);
 
   const handleIntrested = async () => {
     try {
@@ -105,8 +177,7 @@ export default function ContentClient({ id, userId }: Props) {
 
   const [selectedCategory, setSelectedCategory] = useState("timepass");
   const [review, setReview] = useState("");
-  const [selectedUpdatedCategory, setSelectedUpdatedCategory] =
-    useState("timepass");
+  const [selectedUpdatedCategory, setSelectedUpdatedCategory] = useState("timepass");
   const [updatedReview, setUpdatedReview] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [count, setCount] = useState(0);
@@ -905,6 +976,8 @@ export default function ContentClient({ id, userId }: Props) {
                     {/* Card Template */}
                     {comments.map((comment) => {
                       const commentUser = users[comment.user_id];
+                      const postLikes = likes.filter((like) => like.postId == comment.id);
+                      const userLiked = !!postLikes.find((like) => like.userId == userId);
                       return (
                         !editing &&
                         comment.user_id == userId && (
@@ -983,9 +1056,9 @@ export default function ContentClient({ id, userId }: Props) {
                                 </span>
                               </div>
                               <div className="flex gap-2 cursor-pointer" onClick={() => setSelfReReplies(true)}>
-                                <i className="bi bi-chat"></i>
+                                <i className={userLiked ? "bi bi-heart-fill text-red-500" : "bi bi-heart"}></i>
                                 <span className=" hover:text-[#B3B3B3]">
-                                  {comment.replies}
+                                  {postLikes.length}
                                 </span>
                               </div>
                               <div
@@ -1028,6 +1101,9 @@ export default function ContentClient({ id, userId }: Props) {
                     })}
                     {comments.map((comment) => {
                       const commentUser = users[comment.user_id];
+                      const postLikes = likes.filter((like) => like.postId == comment.id);
+                      const userLiked = !!postLikes.find((like) => like.userId == userId);
+                      // alert(userLiked);
                       return (
                         comment.user_id != userId && (
                           <div
@@ -1102,9 +1178,9 @@ export default function ContentClient({ id, userId }: Props) {
                             {/* Footer */}
                             <div className="flex items-center gap-4 w-full mt-5 text-xl">
                               <div className="flex gap-2 cursor-pointer">
-                                <i className="bi bi-heart"></i>
+                                <i onClick={() => { userLiked ? handleUnlike(comment) : handleLike(comment) }} className={userLiked ? "bi bi-heart-fill text-red-500" : "bi bi-heart"}></i>
                                 <span className=" hover:text-[#B3B3B3]">
-                                  {comment.likes}
+                                  {postLikes.length}
                                 </span>
                               </div>
                               <div

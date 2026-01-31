@@ -13,5 +13,5 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   if (!userId) {
     redirect("/");
   }
-  return <Profile userId={username} />;
+  return <Profile userId={username} isMe={userId.value == username} />;
 }

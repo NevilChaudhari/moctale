@@ -5,6 +5,7 @@ import { redirect, useRouter } from "next/navigation";
 
 interface Props {
   userId: string;
+  isMe: boolean;
 }
 
 interface User {
@@ -45,7 +46,7 @@ interface Media {
   image_url: string;
 }
 
-export default function LogoutButton({ userId }: Props) {
+export default function LogoutButton({ userId, isMe }: Props) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [type, setType] = useState("Reviews");
@@ -256,14 +257,14 @@ export default function LogoutButton({ userId }: Props) {
           </div>
 
           {/* Edit Profile */}
-          <button
+          {isMe && (<button
             onClick={() => {
               router.push("/accounts/edit");
             }}
             className="w-full bg-[#474747] hover:bg-[#5A5A5A] text-sm text-white py-2 rounded-md cursor-pointer"
           >
             Edit Profile
-          </button>
+          </button>)}
         </div>
 
         {/* Reviews, Posts and Collections */}
