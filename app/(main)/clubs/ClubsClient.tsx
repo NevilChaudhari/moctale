@@ -266,37 +266,137 @@ export default function ClubsClient({ id, userId }: Props) {
     }, [posts]);
 
 
+    const [mobilePost, setMobilePost] = useState(false);
+    const [viewClub, setViewClub] = useState(false);
+    const [openRules, setOpenRules] = useState(false);
+
+    useEffect(() => {
+        if (!mobilePost && !openRules) return;
+
+        const original = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = original;
+        };
+    }, [mobilePost, openRules]);
+
+
     return (
-        <div className="px-32 py-8 flex bg-black text-white">
+        <div className="relative lg:px-32 md:px-10 md:py-8 mt-2 md:mt-0 flex md:flex-row flex-col gap-2 md:gap-0 bg-black text-white">
+
+            <div onClick={() => setMobilePost(!mobilePost)} className={`${mobilePost ? 'hidden' : ''} fixed bottom-20 right-5 w-13 h-13 items-center justify-center flex text-xl md:hidden bg-[#9745f6] z-100 rounded-xl`}><i className="bi bi-plus-lg"></i></div>
+
+            {mobilePost && (<div className="z-999 mt-auto backdrop-blur-sm fixed overflow-hidden md:block size-full h-full">
+                <div className="flex flex-col bg-[#0d0d0d] items-center p-4 w-full h-auto rounded-lg">
+                    {/* Header */}
+                    <div className="border-b border-[#333333] pb-2 flex flex-col items-center md:flex-row gap-5 md:gap-0 w-full">
+                        <div className="flex items-center justify-start w-full">
+                            {/* Profile Image */}
+                            <div className="rounded-full flex justify-center items-center md:w-10 md:h-10 w-12 h-12 overflow-hidden">
+                                <img
+                                    src={user?.profile_url || "/default-profile.png"}
+                                    alt=""
+                                    className="object-contain"
+                                />
+                            </div>
+
+                            {/* Username */}
+                            <div className="ml-3">
+                                <span className="text-md text-[#B3B3B3]">@</span>
+                                <span className="text-md">{user?.username}</span>
+                            </div>
+
+                            {/* Close Button */}
+                            <div className="ml-auto">
+                                <button onClick={() => setMobilePost(false)} className="text-xl text-[#B3B3B3] hover:text-white">
+                                    <i className="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="flex items-end w-full h-auto mt-5 text-[#B3B3B3] border-b whitespace-pre-wrap wrap-break-word">
+                        <textarea
+                            ref={textareaRef}
+                            onInput={handleInput}
+                            value={postText}
+                            onChange={(e) => setPostText(e.target.value)}
+                            maxLength={500}
+                            rows={10}
+                            placeholder={`What's on your mind, ${user?.username}?`}
+                            className="w-full text-sm md:text-base resize-none overflow-hidden focus:outline-0 text-white"
+                        />
+                        <div className="mt-1 text-bottom text-xs text-gray-500 w-15">
+                            {count} / 500
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center gap-4 w-full mt-3 text-xl">
+                        <div className="flex gap-5 text-sm text-[#C6C6C6]">
+                            <i className="hover:text-white cursor-pointer bi bi-film"></i>
+                            <i
+                                onClick={() => setPostContainSpoilers(!postContainSpoilers)}
+                                className={`${postContainSpoilers ? 'text-orange-400 bi-exclamation-triangle-fill' : 'bi-exclamation-triangle hover:text-white'} cursor-pointer bi`}></i>
+                        </div>
+                        <button
+                            onClick={() => { handlePost(); setMobilePost(false); }}
+                            className="ml-auto bg-white hover:bg-white/90 text-black text-sm cursor-pointer px-6 py-3 rounded-full">
+                            Post
+                        </button>
+                    </div>
+                </div>
+            </div>)}
+
+            {openRules && (<div className="z-999 mt-auto backdrop-blur-sm fixed overflow-hidden md:block size-full h-full">
+                <div className="bg-[#1a1a1a] w-full h-auto md:w-1/2 md:h-auto p-5 rounded-xl mx-auto mt-20 relative">
+                    <div className="absolute top-5 right-5 text-white cursor-pointer" onClick={() => setOpenRules(false)}><i className="bi bi-x-lg"></i></div>
+                    <span className="text-xl font-semibold mb-10">Club Rules</span>
+                    <div className="mt-10">
+                        {rules.length === 0 && (<span className="text-sm text-white/60">No rules available for this club.</span>)}
+                        {rules.map((rule, i) => {
+                            return (
+                                <div className={`font-semibold text-sm border-white/10 flex gap-1 h-10 items-center ${i !== rules.length - 1 ? 'border-b pb-2' : ''}`}>
+                                    <span className="text-white/60">{i + 1}.</span>
+                                    <span className="text-white/60">{rule}</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>)}
+
 
             {/* left Part */}
-            <div className="w-[20%] h-full-sc">
+            {!viewClub && (<div className="md:w-[20%] w-full h-full-sc flex md:flex-col overflow-x-auto gap-2 md:gap-0">
 
                 {/* Tabs */}
-                <div className="flex flex-col gap-2">
+                <div className="flex md:flex-col gap-2 ">
                     <button
                         onClick={() => setActiveTab('feed')}
-                        className={`${activeTab === "feed" ? "bg-[#212121] text-white" : "text-white/60"} cursor-pointer hover:bg-[#212121] w-full rounded-md flex gap-2 px-3 py-3 items-center`}>
-                        <i className={`bi ${activeTab === "feed" ? "bi-house-fill" : "bi-house"}`}></i>
-                        <span>Feed</span>
+                        className={`${activeTab === "feed" ? "bg-[#212121] text-white" : "text-white/60"} flex-col md:flex-row cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex md:gap-2 px-3 py-3 items-center`}>
+                        <i className={`bi ${activeTab === "feed" ? "bi-house-fill bg-[#383838] md:bg-transparent" : "bi-house bg-[#212121] md:bg-transparent"} md:text-base text-2xl px-3 py-2 rounded-xl`}></i>
+                        <span className="text-sm md:text-base">Feed</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('following')}
-                        className={`${activeTab === "following" ? "bg-[#212121] text-white" : "text-white/60"} cursor-pointer hover:bg-[#212121] w-full rounded-md flex gap-2 px-3 py-3 items-center`}>
-                        <i className={`bi ${activeTab === "following" ? "bi-person-fill-check" : "bi-person-check"}`}></i>
-                        <span>Following</span>
+                        className={`${activeTab === "following" ? "bg-[#212121] text-white" : "text-white/60"} flex-col md:flex-row cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex md:gap-2 px-3 py-3 items-center`}>
+                        <i className={`bi ${activeTab === "following" ? "bi-person-fill-check bg-[#383838] md:bg-transparent" : "bi-person-check bg-[#212121] md:bg-transparent"} md:text-base text-2xl px-3 py-2 rounded-xl`}></i>
+                        <span className="text-sm md:text-base">Following</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('discover')}
-                        className={`${activeTab === "discover" ? "bg-[#212121] text-white" : "text-white/60"} cursor-pointer hover:bg-[#212121] w-full rounded-md flex gap-2 px-3 py-3 items-center`}>
-                        <i className={`bi ${activeTab === "discover" ? "bi-binoculars-fill" : "bi-binoculars"}`}></i>
-                        <span>Discover</span>
+                        className={`${activeTab === "discover" ? "bg-[#212121] text-white" : "text-white/60"} flex-col md:flex-row cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex md:gap-2 px-3 py-3 items-center`}>
+                        <i className={`bi ${activeTab === "discover" ? "bi-binoculars-fill bg-[#383838] md:bg-transparent" : "bi-binoculars bg-[#212121] md:bg-transparent"} md:text-base text-2xl px-3 py-2 rounded-xl`}></i>
+                        <span className="text-sm md:text-base">Discover</span>
                     </button>
                 </div>
 
                 {/* Clubs */}
-                <div className="flex flex-col gap-2">
-                    <span className="px-3 py-3 text-sm text-white/80 font-semibold">YOUR CLUBS</span>
+                <div className="flex md:flex-col gap-2">
+                    <span className="hidden md:block px-3 py-3 text-sm text-white/80 font-semibold">YOUR CLUBS</span>
                     {(clubs.length === 0) && (<span className="px-3 py-3 text-sm text-white/60">No clubs joined yet.</span>
                     )}
                     {clubs.map((club: any) => {
@@ -304,21 +404,22 @@ export default function ClubsClient({ id, userId }: Props) {
                             <button
                                 key={club.id}
                                 onClick={() => { setActiveTab(club.club_name); setOpenedClub(club); }}
-                                className={`${activeTab === club.club_name ? "bg-[#212121] text-white" : "text-white/60"} cursor-pointer hover:bg-[#212121] w-full rounded-md flex gap-2 px-3 py-3 items-center`}>
-                                <div className="w-8 h-8 rounded-md overflow-hidden">
+                                className={`${activeTab === club.club_name ? "bg-[#212121] text-white" : "text-white/60"} cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex flex-col md:flex-row md:gap-2 justify-center md:justify-start md:px-3 md:py-3 items-center`}>
+                                <div className="w-12 h-12 md:w-8 md:h-8 rounded-md overflow-hidden">
                                     <img src={club.club_icon} alt={club.club_name} className="w-full h-full object-cover" />
                                 </div>
-                                <span>{club.club_name}</span>
+                                <span className="text-sm md:text-base">{club.club_name}</span>
                             </button>
                         );
                     })}
                 </div>
-            </div>
+            </div>)}
             {/* Middle Part */}
-            <div className="w-[60%] h-full-sc flex flex-col gap-2 px-5">
+            <div className="order-2 md:order-1 md:w-[60%] w-full h-full-sc flex flex-col gap-2 md:px-5">
                 {/* Club Header */}
-                {openedClub && (<div className="bg-[#151515] rounded-2xl size-full h-auto">
-                    <div className="w-full h-35 rounded-t-2xl overflow-hidden">
+                {openedClub && (<div className={`bg-[#151515] rounded-2xl size-full h-auto md:block ${viewClub ? '' : 'hidden'}`}>
+                    <div className="w-full h-35 relative rounded-t-2xl overflow-hidden">
+                        <div onClick={() => setViewClub(false)} className="absolute top-2 left-2 rounded-full flex justify-center items-center w-10 h-10 bg-black/50"><i className="bi bi-chevron-left"></i></div>
                         <img src={openedClub.club_banner} alt="Poster" className="object-cover w-full" />
                     </div>
                     <div className="p-5 flex items-center gap-4">
@@ -340,7 +441,7 @@ export default function ClubsClient({ id, userId }: Props) {
                 </div>)}
 
                 {/* Post */}
-                <div className="size-full h-auto">
+                <div className="hidden md:block size-full h-auto">
                     <div className="flex flex-col bg-[#151515] items-center p-4 w-full h-auto rounded-lg">
                         {/* Header */}
                         <div className="flex flex-col items-center md:flex-row gap-5 md:gap-0 w-full">
@@ -433,7 +534,7 @@ export default function ClubsClient({ id, userId }: Props) {
                                     </div>
 
                                     {/* Post Content */}
-                                    {post.content}
+                                    <span className={`${post.is_spoiler ? 'blur-xs cursor-pointer' : ''} text-white`}>{post.content}</span>
 
                                     {/* Likes and Comments */}
                                     <div className="flex items-center gap-5 w-full mt-5 text-xl">
@@ -460,10 +561,10 @@ export default function ClubsClient({ id, userId }: Props) {
                 })}
             </div>
             {/* Right Part */}
-            <div className="w-[20%] h-full-sc flex">
-                {openedClub && (<div className="w-full">
+            <div className="order-1 md:order-2 md:w-[20%] w-full h-full-sc flex">
+                {openedClub && activeTab === openedClub.club_name && !viewClub && (<div className="w-full">
                     <div className="flex flex-col gap-2 mb-2">
-                        <span className="text-xl text-white font-semibold">Rules</span>
+                        <span className="hidden md:block text-xl text-white font-semibold">Rules</span>
 
                         {/* Rule template */}
                         {expanded && (
@@ -477,13 +578,25 @@ export default function ClubsClient({ id, userId }: Props) {
                             })
                         )}
                     </div>
-                    {openedClub && (
+                    <div className="flex gap-2">
                         <button
-                            onClick={() => setExpanded(!expanded)}
-                            className="text-sm font-semibold rounded-xl px-2 py-2 flex gap-3 items-center justify-center hover:bg-white/20 cursor-pointer bg-white/10 w-full">{openedClub.club_rules ? "Show Rules" : "No Rules Available"}
-                            {expanded ? (<i className="text-xs bi bi-chevron-up"></i>) : (<i className="text-xs bi bi-chevron-down"></i>)}
+                            onClick={() => setViewClub(true)}
+                            className="md:hidden text-sm font-semibold rounded-xl px-2 py-2 flex gap-3 items-center justify-center hover:bg-white/20 cursor-pointer bg-white/10 w-full">Visit Club
                         </button>
-                    )}
+                        {openedClub && (
+                            <button
+                                onClick={() => setOpenRules(true)}
+                                className="md:hidden text-sm font-semibold rounded-xl px-2 py-2 flex gap-3 items-center justify-center hover:bg-white/20 cursor-pointer bg-white/10 w-full">{openedClub.club_rules ? "View Rules" : "No Rules Available"}
+                            </button>
+                        )}
+                        {openedClub && (
+                            <button
+                                onClick={() => setExpanded(!expanded)}
+                                className="hidden text-sm font-semibold rounded-xl px-2 py-2 md:flex gap-3 items-center justify-center hover:bg-white/20 cursor-pointer bg-white/10 w-full">{openedClub.club_rules ? "Show Rules" : "No Rules Available"}
+                                {expanded ? (<i className="text-xs bi bi-chevron-up"></i>) : (<i className="text-xs bi bi-chevron-down"></i>)}
+                            </button>
+                        )}
+                    </div>
                 </div>)}
             </div>
         </div>

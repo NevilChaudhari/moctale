@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const {id} = body;
 
     const [rows] = await db.execute(
-        "SELECT * FROM posts WHERE (? IS NULL OR club_id = ?)",
+        "SELECT * FROM posts WHERE (? IS NULL OR club_id = ?) ORDER BY created_at DESC",
         [id ?? null, id ?? null],
     );
 

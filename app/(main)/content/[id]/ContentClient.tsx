@@ -1050,15 +1050,15 @@ export default function ContentClient({ id, userId }: Props) {
                             {/* Footer */}
                             <div className="flex items-center gap-4 w-full mt-5 text-xl">
                               <div className="flex gap-2 cursor-pointer">
-                                <i className="bi bi-heart"></i>
-                                <span className=" hover:text-[#B3B3B3]">
-                                  {comment.likes}
-                                </span>
-                              </div>
-                              <div className="flex gap-2 cursor-pointer" onClick={() => setSelfReReplies(true)}>
                                 <i className={userLiked ? "bi bi-heart-fill text-red-500" : "bi bi-heart"}></i>
                                 <span className=" hover:text-[#B3B3B3]">
                                   {postLikes.length}
+                                </span>
+                              </div>
+                              <div className="flex gap-2 cursor-pointer" onClick={() => setSelfReReplies(true)}>
+                                <i className="bi bi-chat"></i>
+                                <span className=" hover:text-[#B3B3B3]">
+                                  {comment.replies}
                                 </span>
                               </div>
                               <div

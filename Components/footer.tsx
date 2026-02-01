@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Footer({ userId }: { userId?: string | null }) {
@@ -50,6 +50,17 @@ export default function Footer({ userId }: { userId?: string | null }) {
     const Profile = async () => {
         router.push(`/user/${userId}/`);
     };
+
+    const pathname = usePathname();
+    useEffect(() => {
+        if (pathname.startsWith("/schedule")) {
+            setOpened("Schedule");
+        } else if (pathname.startsWith("/clubs")) {
+            setOpened("Clubs");
+        } else {
+            setOpened("Explorer");
+        }
+    }, [pathname]);
     return (
         <>
             <div className="border-white/20 border-t fixed bg-black h-50px flex place-content-around w-full z-100 bottom-0">
