@@ -34,6 +34,11 @@ interface Posts {
     updated_at: string;
     created_at: string;
 }
+interface UserClubs {
+    id: number;
+    club_name: string;
+    club_icon: string;
+}
 interface Likes {
     id: number;
     userId: number;
@@ -241,6 +246,58 @@ export default function ClubsClient({ id, userId }: Props) {
         fetchPosts();
     }, []);
 
+    const [user_clubs, setUserClubs] = useState<UserClubs[]>([]);
+    const joinedClub = user_clubs.map(item => item.id);
+    const [leaveOption, setleaveOption] = useState(false);
+
+    const fetchUserClubs = async () => {
+        try {
+            const res = await fetch("/api/clubs/clubs_users/fetch/", {
+                method: "POST",
+                body: JSON.stringify({ id: userId }),
+                headers: { "Content-Type": "application/json" },
+            });
+            const data = await res.json();
+            setUserClubs(data.clubs ?? []);
+            console.log(user_clubs);
+
+        } catch (err) {
+            console.error("Failed to fetch user clubs:", err);
+        }
+    };
+    const addUserClubs = async (club_id: any) => {
+        try {
+            const res = await fetch("/api/clubs/clubs_users/add/", {
+                method: "POST",
+                body: JSON.stringify({ user_id: userId, club_id: club_id }),
+                headers: { "Content-Type": "application/json" },
+            });
+            const data = await res.json();
+            console.log(user_clubs);
+            fetchUserClubs();
+        } catch (err) {
+            console.error("Failed to fetch user clubs:", err);
+        }
+    };
+    const deleteUserClubs = async (club_id: any) => {
+        try {
+            const res = await fetch("/api/clubs/clubs_users/delete/", {
+                method: "POST",
+                body: JSON.stringify({ user_id: userId, club_id: club_id }),
+                headers: { "Content-Type": "application/json" },
+            });
+            const data = await res.json();
+            console.log(user_clubs);
+            fetchUserClubs();
+        } catch (err) {
+            console.error("Failed to fetch user clubs:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchUserClubs();
+    }, []);
+
 
     const [users, setUsers] = useState<Record<number, User>>({});
     useEffect(() => {
@@ -407,18 +464,18 @@ export default function ClubsClient({ id, userId }: Props) {
                 {/* Clubs */}
                 <div className="flex md:flex-col gap-2">
                     <span className="hidden md:block px-3 py-3 text-sm text-white/80 font-semibold">YOUR CLUBS</span>
-                    {(clubs.length === 0) && (<span className="px-3 py-3 text-sm text-white/60">No clubs joined yet.</span>
+                    {(user_clubs.length === 0) && (<span className="px-3 py-3 text-sm text-white/60">No clubs joined yet.</span>
                     )}
-                    {clubs.map((club: any) => {
+                    {user_clubs.map((uc: any) => {
                         return (
                             <button
-                                key={club.id}
-                                onClick={() => { setActiveTab(club.club_name); setOpenedClub(club); }}
-                                className={`${activeTab === club.club_name ? "bg-[#212121] text-white" : "text-white/60"} cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex flex-col md:flex-row md:gap-2 justify-center md:justify-start md:px-3 md:py-3 items-center`}>
+                                key={uc.id}
+                                onClick={() => { setActiveTab(uc.club_name); setOpenedClub(uc); }}
+                                className={`${activeTab === uc.club_name ? "bg-[#212121] text-white" : "text-white/60"} cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex flex-col md:flex-row md:gap-2 justify-center md:justify-start md:px-3 md:py-3 items-center`}>
                                 <div className="w-12 h-12 md:w-8 md:h-8 rounded-md overflow-hidden">
-                                    <img src={club.club_icon} alt={club.club_name} className="w-full h-full object-cover" />
+                                    <img src={uc.club_icon} alt={uc.club_name} className="w-full h-full object-cover" />
                                 </div>
-                                <span className="text-sm md:text-base">{club.club_name}</span>
+                                <span className="text-sm md:text-base">{uc.club_name}</span>
                             </button>
                         );
                     })}
@@ -440,12 +497,19 @@ export default function ClubsClient({ id, userId }: Props) {
                             <span className="font-bold text-2xl">{openedClub.club_name}</span>
                             <span className="font-base text-sm text-[#B3B3B3]">{openedClub.club_desc}</span>
                         </div>
-                        <div className="ml-auto flex flex-col">
-                            <button className="cursor-pointer px-3 py-2 items-center flex gap-3 border border-[#404040] bg-[#2A2A2A] hover:bg-[#3A3A3A] rounded-md font-semibold text-sm">
+                        <div className="ml-auto flex flex-col relative">
+                            {joinedClub.includes(openedClub.id) && (<button onClick={()=>setleaveOption(!leaveOption)} className="cursor-pointer px-3 py-2 items-center flex gap-3 border border-[#404040] bg-[#2A2A2A] hover:bg-[#3A3A3A] rounded-md font-semibold text-sm">
                                 <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 flex items-center justify-center"><div className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white rounded-full"></div></div>
                                 Member
                                 <i className="text-xs bi bi-chevron-down"></i>
-                            </button>
+                            </button>)}
+                            {!joinedClub.includes(openedClub.id) && (<button onClick={()=>{addUserClubs(openedClub.id)}} className="cursor-pointer px-3 py-2 items-center flex gap-3 bg-white text-black justify-center rounded-md font-semibold text-sm">
+                                Join
+                            </button>)}
+                            {leaveOption && (<button onClick={()=>{deleteUserClubs(openedClub.id); setleaveOption(!leaveOption);}} className="absolute -bottom-10 cursor-pointer px-3 py-2 w-full items-center justify-center flex gap-3 border border-[#404040] bg-white/5 text-red-400 hover:text-red-300 hover:bg-[#3A3A3A] rounded-md font-semibold text-sm">
+                                Leave Club
+                            </button>)}
+
                         </div>
                     </div>
                 </div>)}
@@ -457,6 +521,7 @@ export default function ClubsClient({ id, userId }: Props) {
                         <span className="text-sm text-[#B3B3B3] font-semibold mb-5">Explore new communities and trending content</span>
                         <div className="grid grid-cols-2 gap-2">
                             {clubs.map((club, index) => {
+                                const isJoined = joinedClub.includes(club.id);
                                 return (
                                     <div key={index} className="flex flex-col border border-[#252833] rounded-2xl hover:bg-[#1f1f1f] cursor-pointer" onClick={() => { setActiveTab(club.club_name); setOpenedClub(club); }}>
                                         <div className="relative">
@@ -468,7 +533,11 @@ export default function ClubsClient({ id, userId }: Props) {
                                         <div className="px-3 pb-3">
                                             <div className="font-bold pt-8 pb-0">{club.club_name}</div>
                                             <div className="pt-1 text-sm text-[#C6C6C6] h-15">{club.club_desc}</div>
-                                            <button className="w-full h-10 mt-5 cursor-pointer bg-white text-black rounded-md flex gap-2 items-center justify-center"><i className="bi bi-plus-lg"></i>Join Club</button>
+                                            {!isJoined && (<button onClick={() => addUserClubs(club.id)} className="w-full h-10 mt-5 cursor-pointer bg-white text-black rounded-md flex gap-2 items-center justify-center"><i className="bi bi-plus-lg"></i>Join Club</button>)}
+                                            <div className="group">
+                                                {isJoined && (<button className="w-full h-10 mt-5 cursor-pointer group-hover:hidden bg-[#2A2A2A] border border-[#404040] text-white rounded-md flex gap-2 items-center justify-center"><i className="bi bi-check-lg"></i>Joined</button>)}
+                                                {isJoined && (<button onClick={() => { deleteUserClubs(club.id) }} className="w-full h-10 mt-5 cursor-pointer hidden group-hover:flex bg-red-600/90 border border-[#404040] text-white rounded-md gap-2 items-center justify-center"><i className="bi bi-x-lg"></i>Leave</button>)}
+                                            </div>
                                         </div>
                                     </div>)
                             })}
