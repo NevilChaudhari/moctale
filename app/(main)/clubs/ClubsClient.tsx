@@ -192,11 +192,21 @@ export default function ClubsClient({ id, userId }: Props) {
     const [posts, setPosts] = useState<Posts[]>([]);
     const fetchPosts = async () => {
         try {
-            const res = await fetch("/api/posts/fetch/", {
-                method: "POST",
-                body: JSON.stringify({ id: openedClub?.id }),
-                headers: { "Content-Type": "application/json" },
-            });
+            let res;
+            if (activeTab === "feed") {
+                res = await fetch("/api/posts/fetch/", {
+                    method: "POST",
+                    body: JSON.stringify({ id: 'feed' }),
+                    headers: { "Content-Type": "application/json" },
+                });
+            }
+            else {
+                res = await fetch("/api/posts/fetch/", {
+                    method: "POST",
+                    body: JSON.stringify({ id: openedClub?.id }),
+                    headers: { "Content-Type": "application/json" },
+                });
+            }
             const data = await res.json();
             setPosts(data.posts ?? null);
             // alert(JSON.stringify(data.posts));
@@ -207,7 +217,7 @@ export default function ClubsClient({ id, userId }: Props) {
 
     useEffect(() => {
         fetchPosts();
-    }, [openedClub]);
+    }, [openedClub, activeTab]);
 
 
     const fetchLikes = async () => {
@@ -377,19 +387,19 @@ export default function ClubsClient({ id, userId }: Props) {
                     <button
                         onClick={() => setActiveTab('feed')}
                         className={`${activeTab === "feed" ? "bg-[#212121] text-white" : "text-white/60"} flex-col md:flex-row cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex md:gap-2 px-3 py-3 items-center`}>
-                        <i className={`bi ${activeTab === "feed" ? "bi-house-fill bg-[#383838] md:bg-transparent" : "bi-house bg-[#212121] md:bg-transparent"} md:text-base text-2xl px-3 py-2 rounded-xl`}></i>
+                        <i className={`bi ${activeTab === "feed" ? "bi-house-fill bg-[#383838] md:bg-transparent" : "bi-house bg-[#212121] md:bg-transparent"} md:text-base text-2xl md:px-0 md:py-0 px-3 py-2 rounded-xl`}></i>
                         <span className="text-sm md:text-base">Feed</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('following')}
                         className={`${activeTab === "following" ? "bg-[#212121] text-white" : "text-white/60"} flex-col md:flex-row cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex md:gap-2 px-3 py-3 items-center`}>
-                        <i className={`bi ${activeTab === "following" ? "bi-person-fill-check bg-[#383838] md:bg-transparent" : "bi-person-check bg-[#212121] md:bg-transparent"} md:text-base text-2xl px-3 py-2 rounded-xl`}></i>
+                        <i className={`bi ${activeTab === "following" ? "bi-person-fill-check bg-[#383838] md:bg-transparent" : "bi-person-check bg-[#212121] md:bg-transparent"} md:text-base text-2xl md:px-0 md:py-0 px-3 py-2 rounded-xl`}></i>
                         <span className="text-sm md:text-base">Following</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('discover')}
                         className={`${activeTab === "discover" ? "bg-[#212121] text-white" : "text-white/60"} flex-col md:flex-row cursor-pointer md:hover:bg-[#212121] md:w-full md:h-auto w-20 h-auto rounded-md flex md:gap-2 px-3 py-3 items-center`}>
-                        <i className={`bi ${activeTab === "discover" ? "bi-binoculars-fill bg-[#383838] md:bg-transparent" : "bi-binoculars bg-[#212121] md:bg-transparent"} md:text-base text-2xl px-3 py-2 rounded-xl`}></i>
+                        <i className={`bi ${activeTab === "discover" ? "bi-binoculars-fill bg-[#383838] md:bg-transparent" : "bi-binoculars bg-[#212121] md:bg-transparent"} md:text-base text-2xl md:px-0 md:py-0 px-3 py-2 rounded-xl`}></i>
                         <span className="text-sm md:text-base">Discover</span>
                     </button>
                 </div>
@@ -417,7 +427,7 @@ export default function ClubsClient({ id, userId }: Props) {
             {/* Middle Part */}
             <div className="order-2 md:order-1 md:w-[60%] w-full h-full-sc flex flex-col gap-2 md:px-5">
                 {/* Club Header */}
-                {openedClub && (<div className={`bg-[#151515] rounded-2xl size-full h-auto md:block ${viewClub ? '' : 'hidden'}`}>
+                {openedClub && activeTab === openedClub.club_name && (<div className={`bg-[#151515] rounded-2xl size-full h-auto md:block ${viewClub ? '' : 'hidden'}`}>
                     <div className="w-full h-35 relative rounded-t-2xl overflow-hidden">
                         <div onClick={() => setViewClub(false)} className="absolute top-2 left-2 rounded-full flex justify-center items-center w-10 h-10 bg-black/50"><i className="bi bi-chevron-left"></i></div>
                         <img src={openedClub.club_banner} alt="Poster" className="object-cover w-full" />
@@ -440,8 +450,35 @@ export default function ClubsClient({ id, userId }: Props) {
                     </div>
                 </div>)}
 
+                {/* Discover Data */}
+                {activeTab === 'discover' && (<div className="w-full">
+                    <div className="flex flex-col gap-2 mb-2">
+                        <span className="text-2xl font-bold">Discover</span>
+                        <span className="text-sm text-[#B3B3B3] font-semibold mb-5">Explore new communities and trending content</span>
+                        <div className="grid grid-cols-2 gap-2">
+                            {clubs.map((club, index) => {
+                                return (
+                                    <div key={index} className="flex flex-col border border-[#252833] rounded-2xl hover:bg-[#1f1f1f] cursor-pointer" onClick={() => { setActiveTab(club.club_name); setOpenedClub(club); }}>
+                                        <div className="relative">
+                                            <img src={club.club_banner} alt="" className="rounded-t-2xl w-full h-32 object-cover" />
+                                            <div className="relative">
+                                                <img src={club.club_icon} alt="" className="w-auto h-13 object-cover absolute -bottom-6 left-3 rounded-md border border-[#252833]" />
+                                            </div>
+                                        </div>
+                                        <div className="px-3 pb-3">
+                                            <div className="font-bold pt-8 pb-0">{club.club_name}</div>
+                                            <div className="pt-1 text-sm text-[#C6C6C6] h-15">{club.club_desc}</div>
+                                            <button className="w-full h-10 mt-5 cursor-pointer bg-white text-black rounded-md flex gap-2 items-center justify-center"><i className="bi bi-plus-lg"></i>Join Club</button>
+                                        </div>
+                                    </div>)
+                            })}
+                        </div>
+                    </div>
+                </div>
+                )}
+
                 {/* Post */}
-                <div className="hidden md:block size-full h-auto">
+                {(activeTab === 'feed' || activeTab === openedClub?.club_name) && (<div className="hidden md:block size-full h-auto">
                     <div className="flex flex-col bg-[#151515] items-center p-4 w-full h-auto rounded-lg">
                         {/* Header */}
                         <div className="flex flex-col items-center md:flex-row gap-5 md:gap-0 w-full">
@@ -495,10 +532,20 @@ export default function ClubsClient({ id, userId }: Props) {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>)}
 
+                {/* WIP */}
+                {activeTab === 'following' && (<div className="w-full">
+                    <div className="flex flex-col gap-2 mb-2">
+                        <span className="text-sm text-white">This Tab is still W.I.P. Please wait for some time</span>
+                    </div>
+                </div>
+                )}
+
+
+                {/* Clubs Data */}
                 {/* Post Template */}
-                {posts.map((post, index) => {
+                {(activeTab === openedClub?.club_name || activeTab === 'feed') && posts.map((post, index) => {
                     const postUser = users[post.user_id];
                     const postLikes = likes.filter((like) => like.postId == post.id);
                     const userLiked = !!postLikes.find((like) => like.userId == userId);
