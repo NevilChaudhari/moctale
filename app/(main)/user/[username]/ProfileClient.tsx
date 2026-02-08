@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
+import dayjs from "@/lib/dayjs";
 
 interface Props {
-  userId: string;
+  userId: number;
   isMe: boolean;
 }
 
@@ -38,6 +39,25 @@ interface comments {
   replies: string;
 }
 
+interface Posts {
+  id: number;
+  user_id: number;
+  club_id: number;
+  content: string;
+  is_spoiler?: boolean;
+  likes?: number;
+  comments?: number;
+  updated_at: string;
+  created_at: string;
+}
+
+interface Likes {
+  id: number;
+  userId: number;
+  postId: number;
+  tableName: string;
+}
+
 interface Media {
   id: number;
   type: string;
@@ -46,10 +66,18 @@ interface Media {
   image_url: string;
 }
 
+interface Collection {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  user_id: string;
+}
+
 export default function LogoutButton({ userId, isMe }: Props) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [type, setType] = useState("Reviews");
+  const [type, setType] = useState("reviews");
   const [categories, setCategories] = useState("All");
   const [listView, setListView] = useState(true);
   const [liked, setLiked] = useState(false);
@@ -169,6 +197,100 @@ export default function LogoutButton({ userId, isMe }: Props) {
     fetchInterests();
   }, [user]);
 
+  const [posts, setPosts] = useState<Posts[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (!userId) return;
+
+      try {
+        const res = await fetch("/api/posts/profileFetch/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: userId }),
+        });
+        const data = await res.json();
+        setPosts(data.posts ?? []);
+
+        console.log(`comments:`, data.posts);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+      }
+    };
+
+    fetchPosts();
+  }, [userId]);
+
+  const [users, setUsers] = useState<Record<number, User>>({});
+  useEffect(() => {
+    if (!posts.length) return;
+
+    const fetchUsers = async () => {
+      try {
+        const uniqueIds = Array.from(new Set(posts.map((c) => c.user_id)));
+
+        const res = await fetch("/api/getMultipleUser/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userIds: uniqueIds }),
+        });
+
+        const data = await res.json();
+
+        if (!data.users) return;
+
+        const usersMap: Record<string, User> = {};
+
+        data.users.forEach((user: User) => {
+          usersMap[user.user_id] = user;
+        });
+
+        setUsers(usersMap);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      }
+    };
+
+    fetchUsers();
+  }, [posts]);
+
+  const [likes, setLikes] = useState<Likes[]>([]);
+  const fetchLikes = async () => {
+    try {
+      const res = await fetch("/api/likes/fetch/", {
+        method: "POST",
+        body: JSON.stringify({ table_name: "Posts" }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      setLikes(data.data ?? null);
+    } catch (err) {
+      console.error("Failed to fetch likes:", err);
+    }
+  };
+  useEffect(() => {
+    fetchLikes();
+  }, []);
+
+
+  const [userCollection, setUserCollection] = useState<Collection[]>([]);
+
+  const fetchCollection = async () => {
+    const res = await fetch('/api/collection/fetch/', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    const data = await res.json();
+
+    setUserCollection(data.collection);
+  }
+
+  useEffect(() => {
+    fetchCollection();
+  }, []);
+
   return (
     <>
       <div className="bg-black h-auto text-white px-3 md:px-32 py-8 flex md:flex-row flex-col gap-6">
@@ -271,8 +393,8 @@ export default function LogoutButton({ userId, isMe }: Props) {
         <div className="order-2 md:order-1 w-full md:w-[50%] h-full flex flex-col rounded-lg">
           <div className="w-full h-12 p-1 bg-[#131313] md:rounded-2xl flex">
             <button
-              onClick={() => setType("Reviews")}
-              className={`${type === "Reviews"
+              onClick={() => setType("reviews")}
+              className={`${type === "reviews"
                 ? "md:bg-[#474747] md:border-0 border-b text-white"
                 : "text-[#C6C6C6]"
                 } opacity-100 w-1/3 h-full cursor-pointer md:rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
@@ -297,8 +419,8 @@ export default function LogoutButton({ userId, isMe }: Props) {
             </button>
 
             <button
-              onClick={() => setType("Posts")}
-              className={`${type === "Posts" ? "md:bg-[#474747] md:border-0 border-b text-white" : "text-[#C6C6C6]"
+              onClick={() => setType("posts")}
+              className={`${type === "posts" ? "md:bg-[#474747] md:border-0 border-b text-white" : "text-[#C6C6C6]"
                 } opacity-100 w-1/3 h-full cursor-pointer md:rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
             >
               <svg
@@ -320,8 +442,8 @@ export default function LogoutButton({ userId, isMe }: Props) {
             </button>
 
             <button
-              onClick={() => setType("Collections")}
-              className={`${type === "Collections"
+              onClick={() => setType("collections")}
+              className={`${type === "collections"
                 ? "md:bg-[#474747] md:border-0 border-b text-white"
                 : "text-[#C6C6C6]"
                 } opacity-100 w-1/3 h-full cursor-pointer md:rounded-xl text-base font-semibold gap-2 flex items-center justify-center`}
@@ -348,350 +470,457 @@ export default function LogoutButton({ userId, isMe }: Props) {
             </button>
           </div>
 
-          <div className="w-full flex items-center justify-between pt-5">
-            {/* Categories */}
-            {!isSearching && (
-              <div className="bg-[#1b1b1b] h-8 rounded-2xl md:flex items-center px-1 py-1 gap-1 hidden">
-                <button
-                  onClick={() => setCategories("All")}
-                  className={`${categories === "All"
-                    ? "bg-[#474747] text-white"
-                    : "text-[#C6C6C6]"
-                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-                >
-                  All
-                </button>
-
-                <button
-                  onClick={() => setCategories("skip")}
-                  className={`${categories === "skip"
-                    ? "bg-[#fe647e] text-black"
-                    : "text-[#C6C6C6]"
-                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-                >
-                  Skip
-                </button>
-
-                <button
-                  onClick={() => setCategories("timepass")}
-                  className={`${categories === "timepass"
-                    ? "bg-[#fcb700] text-black"
-                    : "text-[#C6C6C6]"
-                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-                >
-                  Timepass
-                </button>
-
-                <button
-                  onClick={() => setCategories("goforit")}
-                  className={`${categories === "goforit"
-                    ? "bg-[#00d391] text-black"
-                    : "text-[#C6C6C6]"
-                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-                >
-                  Go For It
-                </button>
-
-                <button
-                  onClick={() => setCategories("perfection")}
-                  className={`${categories === "perfection"
-                    ? "bg-[#b048ff] text-black"
-                    : "text-[#C6C6C6]"
-                    } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
-                >
-                  Perfection
-                </button>
-              </div>
-            )}
-
-            {/* Search Box */}
-            {isSearching && (
-              <div className="w-full mr-2 text-[#E2E2E2] border border-[#252833] rounded-xl bg-[#1b1b1b] flex justify-center items-center gap-3 px-2">
-                <i className="bi bi-search"></i>
-                <input
-                  type="text"
-                  className="w-full py-1 focus:outline-0"
-                  placeholder="Search Reviews..."
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  value={searchQuery}
-                />
-              </div>
-            )}
-
-            {/* View Type */}
-            <div className="ml-auto h-8 rounded-2xl flex items-center mt-t">
+          {/* Reviews Tab */}
+          {type == 'reviews' && (<div>
+            <div className="w-full flex items-center justify-between pt-5">
+              {/* Categories */}
               {!isSearching && (
-                <button
-                  onClick={() => setListView(true)}
-                  className={`${listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
-                    } p-2 md:p-3 rounded-l-md cursor-pointer`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-list w-4 h-4"
+                <div className="bg-[#1b1b1b] h-8 rounded-2xl md:flex items-center px-1 py-1 gap-1 hidden">
+                  <button
+                    onClick={() => setCategories("All")}
+                    className={`${categories === "All"
+                      ? "bg-[#474747] text-white"
+                      : "text-[#C6C6C6]"
+                      } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                   >
-                    <path d="M3 12h.01"></path>
-                    <path d="M3 18h.01"></path>
-                    <path d="M3 6h.01"></path>
-                    <path d="M8 12h13"></path>
-                    <path d="M8 18h13"></path>
-                    <path d="M8 6h13"></path>
-                  </svg>
-                </button>
-              )}
-              {!isSearching && (
-                <button
-                  onClick={() => setListView(false)}
-                  className={`${!listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
-                    } p-2 md:p-3 rounded-r-md cursor-pointer`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-layout-grid w-4 h-4"
+                    All
+                  </button>
+
+                  <button
+                    onClick={() => setCategories("skip")}
+                    className={`${categories === "skip"
+                      ? "bg-[#fe647e] text-black"
+                      : "text-[#C6C6C6]"
+                      } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
                   >
-                    <rect width="7" height="7" x="3" y="3" rx="1"></rect>
-                    <rect width="7" height="7" x="14" y="3" rx="1"></rect>
-                    <rect width="7" height="7" x="14" y="14" rx="1"></rect>
-                    <rect width="7" height="7" x="3" y="14" rx="1"></rect>
-                  </svg>
-                </button>
+                    Skip
+                  </button>
+
+                  <button
+                    onClick={() => setCategories("timepass")}
+                    className={`${categories === "timepass"
+                      ? "bg-[#fcb700] text-black"
+                      : "text-[#C6C6C6]"
+                      } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  >
+                    Timepass
+                  </button>
+
+                  <button
+                    onClick={() => setCategories("goforit")}
+                    className={`${categories === "goforit"
+                      ? "bg-[#00d391] text-black"
+                      : "text-[#C6C6C6]"
+                      } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  >
+                    Go For It
+                  </button>
+
+                  <button
+                    onClick={() => setCategories("perfection")}
+                    className={`${categories === "perfection"
+                      ? "bg-[#b048ff] text-black"
+                      : "text-[#C6C6C6]"
+                      } transition-all duration-200 h-full px-3 rounded-2xl cursor-pointer text-sm font-semibold`}
+                  >
+                    Perfection
+                  </button>
+                </div>
               )}
-              <button
-                onClick={() => {
-                  setIsSearching(!isSearching);
-                }}
-                className={`bg-[#1b1b1b] px-2 py-1 md:px-3 md:py-2 rounded-full cursor-pointer ml-2`}
-              >
-                {!isSearching && <i className="bi bi-search"></i>}
-                {isSearching && <i className="bi bi-x-lg"></i>}
-              </button>
-            </div>
-          </div>
 
-          {/* List */}
-          <div
-            className={`my-5 flex gap-1 ${listView ? "flex-col" : "grid grid-cols-2 md:grid-cols-4"
-              }`}
-          >
-            {/* Movie Card Type 1*/}
-            {listView &&
-              comments
-                .filter((comment) => {
-                  const mediaData = media[comment.post_id];
-                  if (!mediaData) return false;
+              {/* Search Box */}
+              {isSearching && (
+                <div className="w-full mr-2 text-[#E2E2E2] border border-[#252833] rounded-xl bg-[#1b1b1b] flex justify-center items-center gap-3 px-2">
+                  <i className="bi bi-search"></i>
+                  <input
+                    type="text"
+                    className="w-full py-1 focus:outline-0"
+                    placeholder="Search Reviews..."
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchQuery}
+                  />
+                </div>
+              )}
 
-                  // Category filter
-                  const categoryMatch =
-                    categories === "All" || comment.category === categories;
-
-                  if (!categoryMatch) return false;
-
-                  // Search filter
-                  if (!isSearching) return true;
-
-                  return mediaData.title
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase());
-                })
-                .map((comment: comments) => {
-                  const mediaData = media[comment.post_id];
-                  if (!mediaData) return null;
-
-                  return (
-                    <div
-                      key={comment.id}
-                      className="hover:bg-[#1f1f1f] flex rounded-md w-full gap-2 p-2"
+              {/* View Type */}
+              <div className="ml-auto h-8 rounded-2xl flex items-center mt-t">
+                {!isSearching && (
+                  <button
+                    onClick={() => setListView(true)}
+                    className={`${listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
+                      } p-2 md:p-3 rounded-l-md cursor-pointer`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-list w-4 h-4"
                     >
-                      <img
-                        src={mediaData.image_url}
-                        alt=""
-                        className="rounded-sm w-auto h-30 md:h-50"
-                      />
-                      <div className="flex flex-col pl-3 pt-3 w-full">
-                        <div className="flex flex-row place-content-between">
-                          <div className="flex flex-row w-full overflow-auto">
-                            <h3
-                              onClick={() => handleClick(mediaData)}
-                              className="text-white hover:text-[#C6C6C6] cursor-pointer font-semibold text-sm md:text-lg truncate max-w-40 md:max-w-85"
+                      <path d="M3 12h.01"></path>
+                      <path d="M3 18h.01"></path>
+                      <path d="M3 6h.01"></path>
+                      <path d="M8 12h13"></path>
+                      <path d="M8 18h13"></path>
+                      <path d="M8 6h13"></path>
+                    </svg>
+                  </button>
+                )}
+                {!isSearching && (
+                  <button
+                    onClick={() => setListView(false)}
+                    className={`${!listView ? "bg-[#262626]" : "bg-[#1b1b1b]"
+                      } p-2 md:p-3 rounded-r-md cursor-pointer`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-layout-grid w-4 h-4"
+                    >
+                      <rect width="7" height="7" x="3" y="3" rx="1"></rect>
+                      <rect width="7" height="7" x="14" y="3" rx="1"></rect>
+                      <rect width="7" height="7" x="14" y="14" rx="1"></rect>
+                      <rect width="7" height="7" x="3" y="14" rx="1"></rect>
+                    </svg>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setIsSearching(!isSearching);
+                  }}
+                  className={`bg-[#1b1b1b] px-2 py-1 md:px-3 md:py-2 rounded-full cursor-pointer ml-2`}
+                >
+                  {!isSearching && <i className="bi bi-search"></i>}
+                  {isSearching && <i className="bi bi-x-lg"></i>}
+                </button>
+              </div>
+            </div>
+
+            {/* List */}
+            <div
+              className={`my-5 flex gap-1 ${listView ? "flex-col" : "grid grid-cols-2 md:grid-cols-4"
+                }`}
+            >
+              {/* Movie Card Type 1*/}
+              {listView &&
+                comments
+                  .filter((comment) => {
+                    const mediaData = media[comment.post_id];
+                    if (!mediaData) return false;
+
+                    // Category filter
+                    const categoryMatch =
+                      categories === "All" || comment.category === categories;
+
+                    if (!categoryMatch) return false;
+
+                    // Search filter
+                    if (!isSearching) return true;
+
+                    return mediaData.title
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase());
+                  })
+                  .map((comment: comments) => {
+                    const mediaData = media[comment.post_id];
+                    if (!mediaData) return null;
+
+                    return (
+                      <div
+                        key={comment.id}
+                        className="hover:bg-[#1f1f1f] flex rounded-md w-full gap-2 p-2"
+                      >
+                        <img
+                          src={mediaData.image_url}
+                          alt=""
+                          className="rounded-sm w-auto h-30 md:h-50"
+                        />
+                        <div className="flex flex-col pl-3 pt-3 w-full">
+                          <div className="flex flex-row place-content-between">
+                            <div className="flex flex-row w-full overflow-auto">
+                              <h3
+                                onClick={() => handleClick(mediaData)}
+                                className="text-white hover:text-[#C6C6C6] cursor-pointer font-semibold text-sm md:text-lg truncate max-w-40 md:max-w-85"
+                              >
+                                {mediaData.title}
+                              </h3>
+
+
+                              <div className="md:w-25 ml-auto text-end">
+                                {comment.category === "skip" && (
+                                  <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fe647e]">
+                                    Skip
+                                  </span>
+                                )}
+                                {comment.category === "timepass" && (
+                                  <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fcb700]">
+                                    Timepass
+                                  </span>
+                                )}
+                                {comment.category === "goforit" && (
+                                  <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#00d391]">
+                                    Go for it
+                                  </span>
+                                )}
+                                {comment.category === "perfection" && (
+                                  <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#b048ff]">
+                                    Perfection
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-1 items-center">
+                            <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
+                              {mediaData.type}
+                            </span>
+                            <span className="text-[#C6C6C6]">•</span>
+                            <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
+                              {new Date(mediaData.release_date).getFullYear()}
+                            </span>
+                            <span className="text-[#C6C6C6]">•</span>
+                            <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
+                              {new Date(
+                                comment.created_at,
+                              ).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="text-[#C6C6C6] mt-2">
+                            <span>{comment.content}</span>
+                          </div>
+                          <div className="text-[#C6C6C6] mt-2 flex gap-4 text-xl place-content-between">
+                            <div className="flex mt-2 place-content-between gap-4 text-xl">
+                              {!liked ? (
+                                <i
+                                  onClick={() => setLiked(!liked)}
+                                  className="bi bi-heart cursor-pointer"
+                                ></i>
+                              ) : (
+                                <i
+                                  onClick={() => setLiked(!liked)}
+                                  className="bi bi-heart-fill cursor-pointer"
+                                ></i>
+                              )}
+                              <i className="bi bi-chat-left cursor-pointer"></i>
+                            </div>
+                            <div
+                              onClick={() => setShowOptions(!showOptions)}
+                              className="relative flex mt-2 place-content-between gap-4 text-xl cursor-pointer justify-center items-center hover:bg-[#363636] px-2 py-1 rounded-full"
                             >
-                              {mediaData.title}
-                            </h3>
-
-
-                            <div className="md:w-25 ml-auto text-end">
-                              {comment.category === "skip" && (
-                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fe647e]">
-                                  Skip
-                                </span>
-                              )}
-                              {comment.category === "timepass" && (
-                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#fcb700]">
-                                  Timepass
-                                </span>
-                              )}
-                              {comment.category === "goforit" && (
-                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#00d391]">
-                                  Go for it
-                                </span>
-                              )}
-                              {comment.category === "perfection" && (
-                                <span className="w-auto px-2 py-1 rounded-full text-black text-sm bg-[#b048ff]">
-                                  Perfection
-                                </span>
+                              <i className="bi bi-three-dots"></i>
+                              {showOptions && (
+                                <div className="rounded-md py-2 text-sm mt-2 w-max absolute top-full right-0 bg-[#2A2A2A]">
+                                  <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                                    <i className="bi bi-share"></i>
+                                    Share - Story
+                                  </button>
+                                  <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                                    <i className="bi bi-share"></i>
+                                    Share - Classic
+                                  </button>
+                                  <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
+                                    <i className="bi bi-flag"></i>
+                                    Report
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
                         </div>
+                      </div>
+                    );
+                  })}
 
-                        <div className="flex gap-1 items-center">
-                          <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
-                            {mediaData.type}
-                          </span>
-                          <span className="text-[#C6C6C6]">•</span>
-                          <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
-                            {new Date(mediaData.release_date).getFullYear()}
-                          </span>
-                          <span className="text-[#C6C6C6]">•</span>
-                          <span className="text-[#C6C6C6] font-semibold text-xs md:text-sm">
-                            {new Date(
-                              comment.created_at,
-                            ).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="text-[#C6C6C6] mt-2">
-                          <span>{comment.content}</span>
-                        </div>
-                        <div className="text-[#C6C6C6] mt-2 flex gap-4 text-xl place-content-between">
-                          <div className="flex mt-2 place-content-between gap-4 text-xl">
-                            {!liked ? (
-                              <i
-                                onClick={() => setLiked(!liked)}
-                                className="bi bi-heart cursor-pointer"
-                              ></i>
-                            ) : (
-                              <i
-                                onClick={() => setLiked(!liked)}
-                                className="bi bi-heart-fill cursor-pointer"
-                              ></i>
-                            )}
-                            <i className="bi bi-chat-left cursor-pointer"></i>
+              {/* Movie Card Type 2*/}
+              {!listView &&
+                comments
+                  .filter((comment) => {
+                    const mediaData = media[comment.post_id];
+                    if (!mediaData) return false;
+
+                    // Category filter
+                    const categoryMatch =
+                      categories === "All" || comment.category === categories;
+
+                    if (!categoryMatch) return false;
+
+                    // Search filter
+                    if (!isSearching) return true;
+
+                    return mediaData.title
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase());
+                  })
+                  .map((comment: comments) => {
+                    const mediaData = media[comment.post_id];
+                    if (!mediaData) return null;
+                    const titleTooLong = mediaData.title.length > 20;
+                    return (
+                      <div
+                        onClick={() => handleClick(mediaData)}
+                        className="hover:bg-[#1f1f1f] flex flex-col rounded-md gap-2 p-2 cursor-pointer items-center group"
+                      >
+                        <img
+                          src={mediaData.image_url}
+                          alt=""
+                          className="rounded-sm object-cover shrink-0 w-auto h-60 md:h-50"
+                        />
+                        <div className="flex flex-col items-center w-full">
+                          {/* Title container */}
+                          <div className="relative w-28 overflow-hidden">
+                            <h3
+                              className={`text-[#E2E2E2] font-semibold text-sm whitespace-nowrap`}
+                            >
+                              {mediaData.title}
+                            </h3>
                           </div>
-                          <div
-                            onClick={() => setShowOptions(!showOptions)}
-                            className="relative flex mt-2 place-content-between gap-4 text-xl cursor-pointer justify-center items-center hover:bg-[#363636] px-2 py-1 rounded-full"
-                          >
-                            <i className="bi bi-three-dots"></i>
-                            {showOptions && (
-                              <div className="rounded-md py-2 text-sm mt-2 w-max absolute top-full right-0 bg-[#2A2A2A]">
-                                <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                                  <i className="bi bi-share"></i>
-                                  Share - Story
-                                </button>
-                                <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                                  <i className="bi bi-share"></i>
-                                  Share - Classic
-                                </button>
-                                <button className="w-full flex gap-2 items-center px-2 py-2 cursor-pointer hover:bg-white/5">
-                                  <i className="bi bi-flag"></i>
-                                  Report
-                                </button>
-                              </div>
-                            )}
+
+                          {/* Type & Year */}
+                          <div className="flex gap-1 items-center">
+                            <span className="text-[#E2E2E2] font-semibold text-xs">
+                              {mediaData.type}
+                            </span>
+                            <span className="text-[#E2E2E2]">•</span>
+                            <span className="text-[#E2E2E2] font-semibold text-xs">
+                              {new Date(mediaData.release_date).getFullYear()}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-            {/* Movie Card Type 2*/}
-            {!listView &&
-              comments
-                .filter((comment) => {
-                  const mediaData = media[comment.post_id];
-                  if (!mediaData) return false;
+              {/* No Movie Card */}
+              {comments.length <= 0 && (
+                <div className="h-50 w-full bg-[#1b1b1b] rounded-xl items-center justify-center flex flex-col">
+                  <i className="text-3xl bi bi-pencil-square mb-5"></i>
+                  <span className="text-md">
+                    You haven't posted any reviews yet
+                  </span>
+                  <span className="text-sm text-[#C6C6C6]">
+                    Start sharing your opinions on movies and TV shows
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>)}
 
-                  // Category filter
-                  const categoryMatch =
-                    categories === "All" || comment.category === categories;
+          {/* Posts Tab */}
+          {type == 'posts' && posts.map((post, i) => {
+            const postUser = users[post.user_id];
+            const postLikes = likes.filter((like) => like.postId == post.id);
+            const userLiked = !!postLikes.find((like) => like.userId == userId);
+            return (
+              <div
+                key={i}
+                className="w-full h-auto flex flex-col gap-2 px-5 border-b border-[#212121] pb-5 pt-5">
+                {/* Header */}
+                <div className="flex flex-row items-start md:flex-row gap-5 md:gap-5 w-full">
+                  {/* Profile Image */}
+                  <div className="rounded-full overflow-hidden w-12 h-12 md:w-10 md:h-10 shrink-0">
+                    <img
+                      src={postUser?.profile_url || "/L6.jpg"}
+                      alt=""
+                      className="object-cover"
+                    />
+                  </div>
 
-                  if (!categoryMatch) return false;
-
-                  // Search filter
-                  if (!isSearching) return true;
-
-                  return mediaData.title
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase());
-                })
-                .map((comment: comments) => {
-                  const mediaData = media[comment.post_id];
-                  if (!mediaData) return null;
-                  const titleTooLong = mediaData.title.length > 20;
-                  return (
-                    <div
-                      onClick={() => handleClick(mediaData)}
-                      className="hover:bg-[#1f1f1f] flex flex-col rounded-md gap-2 p-2 cursor-pointer items-center group"
-                    >
-                      <img
-                        src={mediaData.image_url}
-                        alt=""
-                        className="rounded-sm object-cover shrink-0 w-auto h-60 md:h-50"
-                      />
-                      <div className="flex flex-col items-center w-full">
-                        {/* Title container */}
-                        <div className="relative w-28 overflow-hidden">
-                          <h3
-                            className={`text-[#E2E2E2] font-semibold text-sm whitespace-nowrap`}
-                          >
-                            {mediaData.title}
-                          </h3>
+                  {/* Body */}
+                  <div className="text-white text-sm md:text-base w-full">
+                    {/* Username  and Options */}
+                    <div className="flex items-center">
+                      <div className="flex flex-col mb-2">
+                        <div>
+                          <span className="text-md text-[#B3B3B3]">@</span>
+                          <span className="text-md">{postUser?.username}</span>
                         </div>
-
-                        {/* Type & Year */}
-                        <div className="flex gap-1 items-center">
-                          <span className="text-[#E2E2E2] font-semibold text-xs">
-                            {mediaData.type}
-                          </span>
-                          <span className="text-[#E2E2E2]">•</span>
-                          <span className="text-[#E2E2E2] font-semibold text-xs">
-                            {new Date(mediaData.release_date).getFullYear()}
-                          </span>
-                        </div>
+                        <span className="text-xs text-[#B3B3B3]">{dayjs(post.created_at).fromNow()}</span>
+                      </div>
+                      <div className="ml-auto cursor-pointer hover:bg-[#212121] px-2 py-1.5 rounded-full text-xs text-white">
+                        <i className="bi bi-three-dots"></i>
                       </div>
                     </div>
-                  );
-                })}
 
-            {/* No Movie Card */}
-            {comments.length <= 0 && (
-              <div className="h-50 w-full bg-[#1b1b1b] rounded-xl items-center justify-center flex flex-col">
-                <i className="text-3xl bi bi-pencil-square mb-5"></i>
-                <span className="text-md">
-                  You haven't posted any reviews yet
-                </span>
-                <span className="text-sm text-[#C6C6C6]">
-                  Start sharing your opinions on movies and TV shows
-                </span>
+                    {/* Post Content */}
+                    <span className={`${post.is_spoiler ? 'blur-xs cursor-pointer' : ''} text-white`}>{post.content}</span>
+
+                    {/* Likes and Comments */}
+                    <div className="flex items-center gap-5 w-full mt-5 text-xl">
+                      <div className="flex gap-2 cursor-pointer">
+                        <i
+                          // onClick={() => { userLiked ? handleUnlike(post) : handleLike(post) }}
+                          className={`bi ${userLiked ? 'bi-heart-fill text-red-500' : 'bi-heart'}`}
+                        ></i>
+                        <span className=" hover:text-[#B3B3B3]">
+                          {postLikes.length || 0}
+                        </span>
+                      </div>
+                      <div className="flex gap-2 cursor-pointer">
+                        <i className="bi bi-chat"></i>
+                        <span className=" hover:text-[#B3B3B3]">
+                          {post.comments || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+            )
+          })}
+
+          {type == 'collections' && (
+            <div className="mt-10">
+              <button className="cursor-pointer w-auto h-10 mx-2 px-2 py-1 rounded hover:bg-[#252525] bg-[#1B1B1B] text-[#C6C6C6] flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`lucide lucide-list-video w-5 h-5 transition-colors duration-300 text-[#C6C6C6]
+                    }`}
+                >
+                  <path d="M12 12H3"></path>
+                  <path d="M16 6H3"></path>
+                  <path d="M12 18H3"></path>
+                  <path d="m16 12 5 3-5 3v-6Z"></path>
+                </svg>
+                Manage Collection
+              </button>
+
+              <div className="grid md:grid-cols-2">
+
+                {/* Collection template */}
+                {userCollection.map((c, i) => {
+                  return (
+                    <div onClick={()=>{router.push(`/collection/${c.id}`);}} className="mt-10 hover:bg-[#171717] p-2 rounded-xl flex flex-col items-center justify-center cursor-pointer">
+                      <div className="md:w-70 w-90 h-full rounded overflow-hidden">
+                        <img src="/defaultCollectionBanner.svg" alt="" className="w-full h-full object-cover" />
+                      </div>
+                      <span className="mr-auto pt-2 px-2">{c.name}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Intrested In */}

@@ -350,7 +350,7 @@ export default function ClubsClient({ id, userId }: Props) {
 
 
     return (
-        <div className="relative lg:px-32 md:px-10 md:py-8 mt-2 md:mt-0 flex md:flex-row flex-col gap-2 md:gap-0 bg-black text-white">
+        <div className="relative pb-15 lg:px-32 md:px-10 md:py-8 mt-2 md:mt-0 flex md:flex-row flex-col gap-2 md:gap-0 bg-black text-white">
 
             <div onClick={() => setMobilePost(!mobilePost)} className={`${mobilePost ? 'hidden' : ''} fixed bottom-20 right-5 w-13 h-13 items-center justify-center flex text-xl md:hidden bg-[#9745f6] z-100 rounded-xl`}><i className="bi bi-plus-lg"></i></div>
 
@@ -519,7 +519,7 @@ export default function ClubsClient({ id, userId }: Props) {
                     <div className="flex flex-col gap-2 mb-2">
                         <span className="text-2xl font-bold">Discover</span>
                         <span className="text-sm text-[#B3B3B3] font-semibold mb-5">Explore new communities and trending content</span>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 mx-5 md:grid-cols-2 gap-2">
                             {clubs.map((club, index) => {
                                 const isJoined = joinedClub.includes(club.id);
                                 return (

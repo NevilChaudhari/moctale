@@ -11,21 +11,21 @@ interface Media extends RowDataPacket {
 }
 
 interface MultiMediaRequest {
-  userIds: number[];
+  mediaIds: number[];
 }
 
 export async function POST(req: Request) {
   try {
-    const { userIds }: MultiMediaRequest = await req.json();
+    const { mediaIds }: MultiMediaRequest = await req.json();    
 
-    if (!userIds || userIds.length === 0) {
+    if (!mediaIds || mediaIds.length === 0) {
       return NextResponse.json({ error: "IDs are required" }, { status: 400 });
     }
 
-    const placeholders = userIds.map(() => "?").join(", ");
+    const placeholders = mediaIds.map(() => "?").join(", ");
     const [rows] = await db.execute<Media[]>(
       `SELECT id, title, type, release_date, image_url FROM media WHERE id IN (${placeholders})`,
-      userIds
+      mediaIds
     );
 
     return NextResponse.json({ success: rows }, { status: 200 });

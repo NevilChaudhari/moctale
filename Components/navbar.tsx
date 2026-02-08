@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import ProfileOptions from "./profileOptions";
 
 export default function NavBar({ userId }: { userId?: string | null }) {
-  const [opened, setOpened] = useState("Explorer");
+  const [opened, setOpened] = useState("");
   const [search, setSearch] = useState(false);
   const [browse, setBrowse] = useState(false);
   const [profile, setProfile] = useState(false);
@@ -41,7 +41,7 @@ export default function NavBar({ userId }: { userId?: string | null }) {
 
   const Explorer = () => {
     setOpened("Explorer");
-    router.push(`/`);
+    router.push(`/explore`);
   };
 
   const Schedule = () => {
@@ -56,12 +56,14 @@ export default function NavBar({ userId }: { userId?: string | null }) {
 
   const pathname = usePathname();
   useEffect(() => {
-    if (pathname.startsWith("/schedule")) {
+    if (pathname.startsWith("/explore")) {
+      setOpened("Explore");
+    }else if (pathname.startsWith("/schedule")) {
       setOpened("Schedule");
     } else if (pathname.startsWith("/clubs")) {
       setOpened("Clubs");
     } else {
-      setOpened("Explorer");
+      setOpened("");
     }
   }, [pathname]);
 

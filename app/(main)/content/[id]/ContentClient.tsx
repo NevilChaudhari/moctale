@@ -54,6 +54,20 @@ interface Likes {
   tableName: string;
 }
 
+interface Collection {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  user_id: string;
+}
+
+interface UserCollection {
+  user_id: number;
+  media_id: number;
+  collection_id: number;
+}
+
 const scrollToTop = () => {
   window.scrollTo({
     top: 0,
@@ -453,21 +467,6 @@ export default function ContentClient({ id, userId }: Props) {
     setDots(generatedDots);
   }, []);
 
-  const [modal1Open, setModal1Open] = useState(false);
-  const [modal2Open, setModal2Open] = useState(false);
-  useEffect(() => {
-    if (modal2Open || modal1Open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [modal2Open, modal1Open]);
-
   useEffect(() => {
     if (showReReplies) {
       document.body.style.overflow = "hidden";
@@ -488,6 +487,112 @@ export default function ContentClient({ id, userId }: Props) {
     router.push(`/user/${userId}/`);
   };
   const router = useRouter();
+
+  const [collection, setCollection] = useState<Collection[]>([]);
+  const [userCollection, setUserCollection] = useState<UserCollection[]>([]);
+  const [addToCollection, setAddToCollection] = useState(false);
+  const [createCollection, setCreateCollection] = useState(false);
+
+  const addCollection = async (collection_id: number) => {
+    try {
+
+      const res = await fetch("/api/collection/addUserCollection/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, media_id: id, collection_id: collection_id }),
+      });
+
+      fetchUserCollection();
+      fetchCollection();
+
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+      fetchCollection();
+    }
+  };
+
+  const removeCollection = async (collection_id: number) => {
+    try {
+
+      const res = await fetch("/api/collection/removeUserCollection/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, media_id: id, collection_id: collection_id }),
+      });
+
+      fetchUserCollection();
+      fetchCollection();
+
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    }
+  };
+
+  const fetchUserCollection = async () => {
+    const res = await fetch('/api/collection/fetchUserCollection/', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, media_id: id }),
+    });
+
+    const data = await res.json();
+    setUserCollection(data.collection);
+  }
+
+  const fetchCollection = async () => {
+    const res = await fetch('/api/collection/fetch/', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    const data = await res.json();
+    setCollection(data.collection);
+  }
+
+  useEffect(() => {
+    fetchCollection();
+  }, []);
+
+  const [modal1Open, setModal1Open] = useState(false);
+  const [modal2Open, setModal2Open] = useState(false);
+  useEffect(() => {
+    if (modal2Open || modal1Open || addToCollection) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [modal2Open, modal1Open, addToCollection]);
+
+  const maxNameChar = 50;
+  const maxDescChar = 150;
+  const [newCollectionName, setNewCollectionName] = useState('');
+  const [newCollectionDesc, setNewCollectionDesc] = useState('');
+  const [newCollectionType, setNewCollectionType] = useState('private');
+
+  const addNewCollection = async () => {
+    try {
+
+      const res = await fetch("/api/collection/newCollection/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCollectionName, description: newCollectionDesc, type: newCollectionType, user_id: userId }),
+      });
+
+      setCreateCollection(false);
+      setNewCollectionName('');
+      setNewCollectionDesc('');
+      setNewCollectionType('private');
+
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    }
+  };
 
   return (
     <div className="relative text-white bg-black">
@@ -530,6 +635,116 @@ export default function ContentClient({ id, userId }: Props) {
               allowFullScreen
               className="object-contain w-full h-full"
             />
+          </div>
+        </div>
+      )}
+
+      {addToCollection && (
+        <div className="z-11 absolute w-full h-[90vh] bg-black/50 object-contain flex justify-center items-center">
+          <div className="bg-[#1F1F1F] border border-[#252833] p-6 w-sm h-100 rounded-xl flex flex-col">
+            <div className="flex items-center justify-center mb-5">
+              <label className="font-bold text-xl">Save to Collection</label>
+              <div onClick={() => setAddToCollection(false)} className="w-10 h-10 hover:bg-[#2A2B2C] ml-auto rounded-full cursor-pointer flex items-center justify-center text-gray-500 hover:text-white"><i className="bi bi-x-lg"></i></div>
+            </div>
+
+            {/* Collection Template */}
+            {collection.map((c, i) => {
+              const uCollection = userCollection.some(
+                row => row.collection_id === c.id
+              );
+              return (
+                <div key={i} onClick={() => {
+                  if (uCollection) { removeCollection(c.id) } else { addCollection(c.id) }
+                }} className="hover:bg-[#2A2B2C] px-3 py-2 rounded-md cursor-pointer flex">
+                  {/* Left side */}
+                  <div className="flex items-center gap-3">
+                    <div className="border border-[#919191] w-6 h-6 rounded-md cursor-pointer flex items-center justify-center">
+                      {uCollection && (<i className="bi bi-check2"></i>)}
+                    </div>
+                    <span className="text-sm font-semibold text-white">
+                      {c.name}
+                    </span>
+                  </div>
+
+                  {/* Right side */}
+                  <div className="ml-auto text-[#919191]">
+                    {c.type == 'private' && (<i className="bi bi-lock"></i>)}
+                    {c.type == 'public' && (<i className="bi bi-globe2"></i>)}
+                  </div>
+                </div>
+              )
+            })}
+
+
+            <div onClick={() => setCreateCollection(true)} className="hover:bg-[#2A2B2C] px-3 py-3 rounded-md cursor-pointer flex mt-auto border-dashed border border-gray-600">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 bg-white rounded-full text-black flex items-center justify-center">
+                  <i className="bi bi-plus"></i>
+                </div>
+                <span className="text-sm font-semibold text-white">
+                  Create new Collection
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {createCollection && (
+        <div className="z-11 absolute w-full h-[90vh] bg-black/80 object-contain flex justify-center items-center">
+          <div className="bg-[#080808] border border-[#252833] p-6 w-lg h-130 rounded-xl flex flex-col">
+            <div className="flex items-center justify-center mb-5">
+              <label className="font-bold text-xl">Create New Collection</label>
+              <div onClick={() => setCreateCollection(false)} className="w-10 h-10 hover:bg-[#2A2B2C] ml-auto rounded-full cursor-pointer flex items-center justify-center text-gray-500 hover:text-white"><i className="bi bi-x-lg"></i></div>
+            </div>
+
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-400">Collection Name</label>
+                  <p className="text-xs text-gray-400">
+                    {newCollectionName.length}/{maxNameChar}
+                  </p>
+                </div>
+                <input maxLength={maxNameChar} onChange={e => setNewCollectionName(e.target.value)} type="text" className="border border-[#252833] px-2 py-2 w-full bg-[#1F1F1F] rounded focus:outline-0 text-sm" placeholder="Enter a name of your collection" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-gray-400">Description</label>
+                  <p className="text-xs text-gray-400">
+                    {newCollectionDesc.length}/{maxDescChar}
+                  </p>
+                </div>
+                <textarea maxLength={maxDescChar} onChange={e => setNewCollectionDesc(e.target.value)} className="border min-h-25 border-[#252833] px-2 py-2 w-full bg-[#1F1F1F] rounded focus:outline-0 text-sm" placeholder="Add a description (optional)" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-gray-400">Visibility</label>
+                <div className="bg-[#1F1F1F] rounded-lg w-full p-1 flex mb-4">
+                  <button
+                    className={`flex gap-2 items-center justify-center cursor-pointer border-0 rounded-md flex-1 py-2 text-sm font-medium ${newCollectionType == 'private' ? "bg-[#474747] text-white shadow-sm" : "text-gray-500"}`}
+                    onClick={() => { setNewCollectionType('private'); }}
+                  >
+                    <i className="bi bi-lock"></i>
+                    Private
+                  </button>
+                  <button
+                    className={`flex gap-2 items-center justify-center cursor-pointer bg-none border-0 rounded-md flex-1 py-2 text-sm font-medium ${newCollectionType == 'public' ? "bg-[#474747] text-white shadow-sm" : "text-gray-400"}`}
+                    onClick={() => { setNewCollectionType('public'); }}
+                  >
+                    <i className="bi bi-globe2"></i>
+                    Public
+                  </button>
+                </div>
+                <span className="text-xs text-gray-400">{newCollectionType == 'public' ? 'Anyone with the link can view this watchlist' : 'Only you can see this watchlist'}</span>
+              </div>
+            </div>
+
+
+            <div onClick={() => addNewCollection()} className="hover:bg-[#6D2DC7] bg-[#8034EB] px-3 py-3 rounded-md cursor-pointer flex mt-auto items-center justify-center">
+              <span className="text-sm font-bold text-white">
+                Create Collection
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -674,10 +889,15 @@ export default function ContentClient({ id, userId }: Props) {
                   <div className="absolute inset-0 pointer-events-none"></div>
                 </button>
               )}
-              <button className="rounded-full bg-[#474747] md:bg-white/10 w-full py-2 px-23 font-semibold text-sm hover:bg-white/20 cursor-pointer">
+
+              {collection && (<button onClick={() => { setAddToCollection(true); fetchUserCollection(); }} className="rounded-full bg-[#474747] md:bg-white/10 w-full py-2 font-semibold text-sm hover:bg-white/20 cursor-pointer">
                 <i className="bi bi-bookmark mr-3"></i>
                 Add to collection
-              </button>
+              </button>)}
+              {!collection && (<button onClick={() => { setAddToCollection(true); fetchUserCollection(); }} className="rounded-full bg-[#474747] md:bg-white/10 w-full py-2 font-semibold text-sm hover:bg-white/20 cursor-pointer">
+                <i className="bi bi-bookmark-fill mr-3"></i>
+                Added to collection
+              </button>)}
             </div>
           </div>
         </div>
